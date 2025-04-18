@@ -72,16 +72,17 @@ public class LoginController {
     public void showLoginView() {
          SwingUtilities.invokeLater(() -> loginView.setVisible(true));
     }
+    
 
     // --- Action Listener Classes ---
 
     class LoginButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            String emailOrUsername = loginView.getEmailInput();
+            String email = loginView.getEmailInput();
             char[] password = loginView.getPasswordInput();
 
-            if (emailOrUsername.isEmpty() || password.length == 0) {
+            if (email.isEmpty() || password.length == 0) {
                 loginView.displayErrorMessage("Username/Email and Password cannot be empty.");
                 PasswordUtils.clearPasswordArray(password);
                 return;
@@ -96,7 +97,7 @@ public class LoginController {
                 @Override
                 protected User doInBackground() {
                     try {
-                        Optional<User> userOptional = userDAO.findByUsername(emailOrUsername);
+                        Optional<User> userOptional = userDAO.findByEmail(email);
                         if (userOptional.isPresent()) {
                             User user = userOptional.get();
                             if (!user.isActive()) {
@@ -128,7 +129,7 @@ public class LoginController {
                             if (onLoginSuccess != null) onLoginSuccess.run();
                         } else {
                             loginView.displayErrorMessage(errorMessage);
-                            LOGGER.log(Level.WARNING, "Login failed: {0}", emailOrUsername);
+                            LOGGER.log(Level.WARNING, "Login failed: {0}", email);
                         }
                     } catch (Exception ex) {
                         LOGGER.log(Level.SEVERE, "Error finalizing login", ex);

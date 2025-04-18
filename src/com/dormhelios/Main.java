@@ -84,7 +84,7 @@ public class Main {
         loginController.setOnLoginSuccessAction(() -> {
             // Find the user again (or pass it directly if LoginController stored it)
             // This is slightly redundant but safer if LoginController doesn't hold state.
-            Optional<User> userOpt = userDAO.findByUsername(loginView.getEmailInput()); // Assuming email is username here
+            Optional<User> userOpt = userDAO.findByEmail(loginView.getEmailInput()); // Assuming email is username here
             if (userOpt.isPresent()) {
                 currentLoggedInUser = userOpt.get();
                 showMainDashboard();

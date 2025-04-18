@@ -12,7 +12,8 @@ public class User {
     private int userId;
     private String username;
     private String passwordHash;
-    private String fullName;
+    private String firstName;
+    private String surname;
     private Role role;
     private String email;
     private String phoneNumber;
@@ -24,11 +25,12 @@ public class User {
         this.isActive = true;
     }
 
-    public User(String username, String passwordHash, String fullName, Role role, String email, String phoneNumber) {
+    public User(String username, String passwordHash, String firstName, String surname, Role role, String email, String phoneNumber) {
         this();
         this.username = username;
         this.passwordHash = passwordHash;
-        this.fullName = fullName;
+        this.firstName = firstName;
+        this.surname = surname;
         this.role = role;
         this.email = email;
         this.phoneNumber = phoneNumber;
@@ -58,12 +60,20 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
     public Role getRole() {
@@ -136,9 +146,9 @@ public class User {
 
     @Override
     public String toString() {
-        return "User{" + "userId=" + userId + ", username=" + username + ", passwordHash=" + passwordHash + ", fullName=" + fullName + ", role=" + role + ", email=" + email + ", phoneNumber=" + phoneNumber + ", isActive=" + isActive + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
+        return "User{" + "userId=" + userId + ", username=" + username + ", passwordHash=" + passwordHash + ", firstName=" + firstName + ", surname=" + surname + ", role=" + role + ", email=" + email + ", phoneNumber=" + phoneNumber + ", isActive=" + isActive + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + '}';
     }
-    
+
     
 
 }

@@ -110,7 +110,7 @@ public class RegisterController {
                 @Override
                 protected Integer doInBackground() {
                     try {
-                        if (userDAO.findByUsername(email).isPresent()) {
+                        if (userDAO.findByEmail(email).isPresent()) {
                             errorMessage = "An account with this email already exists.";
                             return -1;
                         }
@@ -119,7 +119,7 @@ public class RegisterController {
                             errorMessage = "Could not secure password. Registration failed.";
                             return -1;
                         }
-                        User newUser = new User(email, hashed, "New Tenant", User.Role.TENANT, email, null);
+                        User newUser = new User("test", hashed, "test", "Test", User.Role.TENANT, email, null);
                         newUser.setActive(true);
                         return userDAO.addUser(newUser);
                     } catch (Exception ex) {

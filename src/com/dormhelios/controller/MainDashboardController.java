@@ -85,7 +85,7 @@ public class MainDashboardController {
      * - Makes the main view visible.
      */
     public void initializeDashboard() {
-        mainView.setUserDisplayName(loggedInUser.getFullName() != null ? loggedInUser.getFullName() : loggedInUser.getUsername());
+        mainView.setUserDisplayName(loggedInUser.getFirstName() != null ? loggedInUser.getFirstName() : loggedInUser.getUsername());
 
         // Create and add the initial dashboard panel
         dashboardPanel = new DashboardPanel();
