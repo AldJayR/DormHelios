@@ -26,6 +26,7 @@ public class TenantController {
     private final GuardianDAO guardianDAO;
     private final EmergencyContactDAO contactDAO;
     private final PaymentDAO paymentDAO;
+    private final UserDAO userDAO; // Add UserDAO dependency
     private final JFrame parentFrame;
 
     public TenantController(TenantListView listView,
@@ -36,6 +37,7 @@ public class TenantController {
                             GuardianDAO guardianDAO,
                             EmergencyContactDAO contactDAO,
                             PaymentDAO paymentDAO,
+                            UserDAO userDAO, // Add UserDAO to constructor
                             JFrame parentFrame) {
         this.listView = listView;
         this.formDialog = formDialog;
@@ -45,6 +47,7 @@ public class TenantController {
         this.guardianDAO = guardianDAO;
         this.contactDAO = contactDAO;
         this.paymentDAO = paymentDAO;
+        this.userDAO = userDAO; // Assign UserDAO
         this.parentFrame = parentFrame;
         attachListeners();
     }
@@ -88,6 +91,7 @@ public class TenantController {
         formDialog.setRoomComboBoxModel(roomDAO.findAll());
         formDialog.setGuardianComboBoxModel(guardianDAO.findAll());
         formDialog.setEmergencyContactComboBoxModel(contactDAO.findAll());
+        formDialog.setUserComboBoxModel(userDAO.findAll()); // Load users
         formDialog.addSaveButtonListener(e -> saveNewTenant());
         formDialog.addCancelButtonListener(e -> formDialog.closeDialog());
         formDialog.showDialog();
@@ -112,9 +116,11 @@ public class TenantController {
                     if (opt.isPresent()) {
                         Tenant t = opt.get();
                         formDialog.setupForEdit(t);
+                        // Load combo models
                         formDialog.setRoomComboBoxModel(roomDAO.findAll());
                         formDialog.setGuardianComboBoxModel(guardianDAO.findAll());
                         formDialog.setEmergencyContactComboBoxModel(contactDAO.findAll());
+                        formDialog.setUserComboBoxModel(userDAO.findAll()); // Load users
                         formDialog.addSaveButtonListener(e -> saveUpdatedTenant());
                         formDialog.addCancelButtonListener(e -> formDialog.closeDialog());
                         formDialog.showDialog();

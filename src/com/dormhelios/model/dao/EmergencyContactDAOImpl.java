@@ -174,7 +174,7 @@ public class EmergencyContactDAOImpl implements EmergencyContactDAO {
      */
     private EmergencyContact mapResultSetToEmergencyContact(ResultSet rs) throws SQLException {
         EmergencyContact contact = new EmergencyContact();
-        contact.setContactId(rs.getInt("contact_id"));
+        contact.setContactId(rs.getInt("id"));
         contact.setName(rs.getString("name"));
         contact.setPhoneNumber(rs.getString("phone_number"));
         contact.setRelationship(rs.getString("relationship")); // Handle potential null

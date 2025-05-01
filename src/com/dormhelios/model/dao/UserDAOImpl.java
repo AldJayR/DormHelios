@@ -17,7 +17,7 @@ public class UserDAOImpl implements UserDAO {
     private static final String FIND_BY_USERNAME_SQL = "SELECT * FROM USERS WHERE username = ?";
     private static final String FIND_BY_EMAIL_SQL = "SELECT * FROM USERS WHERE email = ?";
     private static final String FIND_BY_ID_SQL = "SELECT * FROM USERS WHERE id = ?";
-    private static final String FIND_ALL_SQL = "SELECT * FROM USERS ORDER BY full_name";
+    private static final String FIND_ALL_SQL = "SELECT * FROM USERS ORDER BY first_name";
     private static final String ADD_USER_SQL = "INSERT INTO USERS (username, password_hash, full_name, role, email, phone_number, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
     private static final String UPDATE_USER_SQL = "UPDATE USERS SET username = ?, password_hash = ?, full_name = ?, role = ?, email = ?, phone_number = ?, is_active = ?, updated_at = NOW() WHERE user_id = ?";
     private static final String REGISTER_USER_SQL = """

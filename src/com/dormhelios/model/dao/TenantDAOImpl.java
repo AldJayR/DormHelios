@@ -16,12 +16,16 @@ public class TenantDAOImpl implements TenantDAO {
     private static final Logger LOGGER = Logger.getLogger(TenantDAOImpl.class.getName());
 
     // --- SQL Constants ---
-    private static final String FIND_BY_ID_SQL = "SELECT * FROM TENANTS WHERE tenant_id = ?";
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM TENANTS WHERE id = ?";
     private static final String FIND_ALL_SQL = "SELECT * FROM TENANTS ORDER BY last_name, first_name";
     private static final String FIND_BY_ROOM_ID_SQL = "SELECT * FROM TENANTS WHERE room_id = ? ORDER BY last_name, first_name";
     private static final String FIND_BY_LAST_NAME_SQL = "SELECT * FROM TENANTS WHERE last_name LIKE ? ORDER BY first_name";
-    private static final String ADD_SQL = "INSERT INTO TENANTS (user_id, room_id, guardian_id, emergency_contact_id, first_name, last_name, student_id_number, email, phone_number, permanent_address, lease_start_date, lease_end_date, security_deposit_amount, security_deposit_status, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
-    private static final String UPDATE_SQL = "UPDATE TENANTS SET user_id = ?, room_id = ?, guardian_id = ?, emergency_contact_id = ?, first_name = ?, last_name = ?, student_id_number = ?, email = ?, phone_number = ?, permanent_address = ?, lease_start_date = ?, lease_end_date = ?, security_deposit_amount = ?, security_deposit_status = ?, notes = ?, updated_at = NOW() WHERE tenant_id = ?";
+    private static final String ADD_SQL = 
+        "INSERT INTO TENANTS (user_id, room_id, guardian_id, emergency_contact_id, first_name, last_name, student_number, email, phone_number, permanent_address, lease_start_date, lease_end_date, deposit_amount, deposit_status, created_at, updated_at) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+    private static final String UPDATE_SQL = 
+        "UPDATE TENANTS SET user_id = ?, room_id = ?, guardian_id = ?, emergency_contact_id = ?, first_name = ?, last_name = ?, student_number = ?, email = ?, phone_number = ?, permanent_address = ?, lease_start_date = ?, lease_end_date = ?, deposit_amount = ?, deposit_status = ?, updated_at = NOW() " +
+        "WHERE tenant_id = ?";
     private static final String DELETE_SQL = "DELETE FROM TENANTS WHERE tenant_id = ?";
     private static final String ASSIGN_ROOM_SQL = "UPDATE TENANTS SET room_id = ?, updated_at = NOW() WHERE tenant_id = ?";
     private static final String ASSIGN_GUARDIAN_SQL = "UPDATE TENANTS SET guardian_id = ?, updated_at = NOW() WHERE tenant_id = ?";
@@ -52,7 +56,7 @@ public class TenantDAOImpl implements TenantDAO {
     @Override
     public List<Tenant> findAll() {
         List<Tenant> tenants = new ArrayList<>();
-        final String sql = FIND_ALL_SQL.replace("ORDER BY", "WHERE is_active = TRUE ORDER BY");
+        final String sql = FIND_ALL_SQL.replace("ORDER BY", "WHERE is_active = 1 ORDER BY");
         try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
 
             while (rs.next()) {
@@ -133,7 +137,6 @@ public class TenantDAOImpl implements TenantDAO {
             pstmt.setObject(12, tenant.getLeaseEndDate() != null ? Date.valueOf(tenant.getLeaseEndDate()) : null);
             pstmt.setBigDecimal(13, tenant.getSecurityDepositAmount());
             pstmt.setString(14, tenant.getSecurityDepositStatus().name());
-            pstmt.setString(15, tenant.getNotes());
 
             int affectedRows = pstmt.executeUpdate();
 
@@ -263,7 +266,7 @@ public class TenantDAOImpl implements TenantDAO {
     // --- Helper Method for Mapping ---
     private Tenant mapResultSetToTenant(ResultSet rs) throws SQLException {
         Tenant tenant = new Tenant();
-        tenant.setTenantId(rs.getInt("tenant_id"));
+        tenant.setTenantId(rs.getInt("id"));
 
         tenant.setUserId((Integer) rs.getObject("user_id"));
         tenant.setRoomId((Integer) rs.getObject("room_id"));
@@ -272,7 +275,7 @@ public class TenantDAOImpl implements TenantDAO {
 
         tenant.setFirstName(rs.getString("first_name"));
         tenant.setLastName(rs.getString("last_name"));
-        tenant.setStudentIdNumber(rs.getString("student_id_number"));
+        tenant.setStudentIdNumber(rs.getString("student_number"));
         tenant.setEmail(rs.getString("email"));
         tenant.setPhoneNumber(rs.getString("phone_number"));
         tenant.setPermanentAddress(rs.getString("permanent_address"));
@@ -282,10 +285,10 @@ public class TenantDAOImpl implements TenantDAO {
         Date leaseEndDateDb = rs.getDate("lease_end_date");
         tenant.setLeaseEndDate(leaseEndDateDb != null ? leaseEndDateDb.toLocalDate() : null);
 
-        tenant.setSecurityDepositAmount(rs.getBigDecimal("security_deposit_amount"));
+        tenant.setSecurityDepositAmount(rs.getBigDecimal("deposit_amount"));
 
         try {
-            tenant.setSecurityDepositStatus(Tenant.DepositStatus.valueOf(rs.getString("security_deposit_status").toUpperCase()));
+            tenant.setSecurityDepositStatus(Tenant.DepositStatus.valueOf(rs.getString("deposit_status").toUpperCase()));
         } catch (IllegalArgumentException | NullPointerException e) {
             LOGGER.log(Level.WARNING, "Invalid or NULL security deposit status found in DB for tenant ID: " + tenant.getTenantId() + ". Defaulting to PENDING.");
             tenant.setSecurityDepositStatus(Tenant.DepositStatus.PENDING);

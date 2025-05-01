@@ -16,13 +16,13 @@ public class RoomDAOImpl implements RoomDAO {
     private static final Logger LOGGER = Logger.getLogger(RoomDAOImpl.class.getName());
 
     // --- SQL Constants ---
-    private static final String FIND_BY_ID_SQL = "SELECT * FROM ROOMS WHERE room_id = ?";
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM ROOMS WHERE id = ?";
     private static final String FIND_BY_ROOM_NUMBER_SQL = "SELECT * FROM ROOMS WHERE room_number = ?";
     private static final String FIND_ALL_SQL = "SELECT * FROM ROOMS ORDER BY room_number";
     private static final String FIND_BY_STATUS_SQL = "SELECT * FROM ROOMS WHERE status = ? ORDER BY room_number";
     private static final String ADD_SQL = "INSERT INTO ROOMS (room_number, capacity, monthly_rate, status, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())";
-    private static final String UPDATE_SQL = "UPDATE ROOMS SET room_number = ?, capacity = ?, monthly_rate = ?, status = ?, description = ?, updated_at = NOW() WHERE room_id = ?";
-    private static final String DELETE_SQL = "DELETE FROM ROOMS WHERE room_id = ?";
+    private static final String UPDATE_SQL = "UPDATE ROOMS SET room_number = ?, capacity = ?, monthly_rate = ?, status = ?, description = ?, updated_at = NOW() WHERE id = ?";
+    private static final String DELETE_SQL = "DELETE FROM ROOMS WHERE id = ?";
     private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM ROOMS"; // New SQL
     private static final String COUNT_BY_STATUS_SQL = "SELECT COUNT(*) FROM ROOMS WHERE status = ?"; // New SQL
 
@@ -250,7 +250,7 @@ public class RoomDAOImpl implements RoomDAO {
      */
     private Room mapResultSetToRoom(ResultSet rs) throws SQLException {
         Room room = new Room();
-        room.setRoomId(rs.getInt("room_id"));
+        room.setRoomId(rs.getInt("id"));
         room.setRoomNumber(rs.getString("room_number"));
         room.setCapacity(rs.getInt("capacity"));
         room.setMonthlyRate(rs.getBigDecimal("monthly_rate"));

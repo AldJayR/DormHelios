@@ -8,12 +8,16 @@ import com.dormhelios.model.entity.User; // Needed for passing user
 import com.dormhelios.view.LoginView;
 import com.dormhelios.view.MainDashboardView;
 import com.dormhelios.view.RegisterView;
+import com.formdev.flatlaf.FlatLightLaf; // Import FlatLaf
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import java.awt.Insets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Optional;
+import java.awt.Color; // Import Color
+import java.awt.Dimension; // Import Dimension
 
 public class Main {
 
@@ -51,9 +55,57 @@ public class Main {
 
     private static void setupLookAndFeel() {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            FlatLightLaf.setup(); // Setup FlatLaf Light theme
+
+            // --- Customizations ---
+            // Set a custom accent color (e.g., a shade of blue)
+            UIManager.put("Component.accentColor", new Color(0x4A90E2));
+
+            // Enable rounded corners for text fields and buttons
+            UIManager.put("Component.arc", 5); // Adjust arc value as needed (e.g., 5)
+            UIManager.put("Button.arc", 8);
+            UIManager.put("TextComponent.arc", 5);
+
+            // Table customizations
+            UIManager.put("Table.showHorizontalLines", true);
+            UIManager.put("Table.showVerticalLines", true);
+            UIManager.put("Table.intercellSpacing", new Dimension(0, 1)); // Add some vertical spacing
+            UIManager.put("Table.alternateRowColor", UIManager.getColor("Table.background").brighter()); // Subtle zebra striping
+
+            // Style for the password visibility toggle button (optional, but good practice)
+            UIManager.put("PasswordField.showRevealButton", true); // FlatLaf built-in support!
+
+            // --- Additional Customizations ---
+
+            // Tabbed Pane styling (if used, e.g., in Dashboard)
+            UIManager.put("TabbedPane.selectedBackground", UIManager.getColor("Component.accentColor")); // Use accent color for selected tab bg
+            UIManager.put("TabbedPane.underlineColor", UIManager.getColor("Component.accentColor")); // Underline selected tab with accent color
+            UIManager.put("TabbedPane.showTabSeparators", true);
+
+            // Scroll Bar styling
+            UIManager.put("ScrollBar.thumbArc", 999); // Round scroll bar thumbs
+            UIManager.put("ScrollBar.thumbInsets", new Insets(2, 2, 2, 2)); // Add padding to thumb
+            UIManager.put("ScrollBar.width", 10); // Make scroll bars slightly thinner
+
+            // Focus Indicator styling
+            UIManager.put("Component.focusWidth", 1); // Thinner focus ring
+            UIManager.put("Component.focusColor", UIManager.getColor("Component.accentColor").darker()); // Use a darker accent color for focus
+
+            // Placeholder text color
+            UIManager.put("TextComponent.placeholderForeground", UIManager.getColor("textInactiveText"));
+
+
+            // Apply the changes immediately (important after setting UIManager properties)
+            FlatLightLaf.updateUI(); // Update all existing components if any were created before this point
+
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to set system Look and Feel.", e);
+            LOGGER.log(Level.SEVERE, "Failed to initialize or customize FlatLaf Look and Feel.", e);
+            // Optionally fall back to system L&F or default if FlatLaf fails
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, "Failed to set system Look and Feel as fallback.", ex);
+            }
         }
     }
 

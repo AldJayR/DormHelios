@@ -4,6 +4,7 @@ import com.dormhelios.model.entity.Guardian; // Needed for dropdowns
 import com.dormhelios.model.entity.EmergencyContact; // Needed for dropdowns
 import com.dormhelios.model.entity.Room; // Needed for dropdowns
 import com.dormhelios.model.entity.Tenant; // To get/set data
+import com.dormhelios.model.entity.User; // Needed for dropdowns
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -76,7 +77,8 @@ public class TenantFormDialog extends javax.swing.JDialog {
         selectComboBoxItemById(roomComboBox, tenant.getRoomId());
         selectComboBoxItemById(guardianComboBox, tenant.getGuardianId());
         selectComboBoxItemById(emergencyContactComboBox, tenant.getEmergencyContactId());
-        // TODO: Handle User ID link if applicable
+        // Select previously chosen User Account
+        selectComboBoxItemById(userComboBox, tenant.getUserId());
     }
 
     public Tenant getTenantData() {
@@ -118,7 +120,8 @@ public class TenantFormDialog extends javax.swing.JDialog {
         tenant.setRoomId(getSelectedIdFromComboBox(roomComboBox));
         tenant.setGuardianId(getSelectedIdFromComboBox(guardianComboBox));
         tenant.setEmergencyContactId(getSelectedIdFromComboBox(emergencyContactComboBox));
-        // TODO: Handle User ID link if applicable
+        // Read selected User Account
+        tenant.setUserId(getSelectedIdFromComboBox(userComboBox));
 
         return tenant;
     }
@@ -148,6 +151,19 @@ public class TenantFormDialog extends javax.swing.JDialog {
                 contact -> contact.getName()); // Display Contact Name
         if (currentTenant != null) {
             selectComboBoxItemById(emergencyContactComboBox, currentTenant.getEmergencyContactId());
+        }
+    }
+
+    public void setUserComboBoxModel(List<User> users) {
+        Vector<ComboBoxItem<Integer>> model = new Vector<>();
+        model.add(new ComboBoxItem<>(null, "Select User Account..."));
+        for (User u : users) {
+            model.add(new ComboBoxItem<>(u.getUserId(), u.getEmail()));
+        }
+        userComboBox.setModel(new DefaultComboBoxModel<>(model));
+        // If editing, pre-select current
+        if (currentTenant != null) {
+            selectComboBoxItemById(userComboBox, currentTenant.getUserId());
         }
     }
 
@@ -204,6 +220,7 @@ public class TenantFormDialog extends javax.swing.JDialog {
         roomComboBox.setSelectedIndex(0); // Select prompt
         guardianComboBox.setSelectedIndex(0);
         emergencyContactComboBox.setSelectedIndex(0);
+        userComboBox.setSelectedIndex(0); // Reset User Account dropdown
         firstNameField.requestFocusInWindow(); // Set focus
     }
 
@@ -343,13 +360,15 @@ public class TenantFormDialog extends javax.swing.JDialog {
         emergencyContactComboBox = new javax.swing.JComboBox();
         saveButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
+        jLabel19 = new javax.swing.JLabel();
+        userComboBox = new javax.swing.JComboBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(456, 700));
+        setPreferredSize(new java.awt.Dimension(466, 700));
         setResizable(false);
 
         mainPanel.setBackground(new java.awt.Color(255, 255, 255));
-        mainPanel.setPreferredSize(new java.awt.Dimension(400, 1000));
+        mainPanel.setPreferredSize(new java.awt.Dimension(415, 866));
         mainPanel.setRequestFocusEnabled(false);
 
         titleLabel.setFont(new java.awt.Font("Segoe UI Semibold", 0, 23)); // NOI18N
@@ -416,6 +435,9 @@ public class TenantFormDialog extends javax.swing.JDialog {
             }
         });
 
+        saveButton.setBackground(new java.awt.Color(51, 204, 255));
+        saveButton.setFont(new java.awt.Font("Segoe UI Semibold", 0, 12)); // NOI18N
+        saveButton.setForeground(new java.awt.Color(255, 255, 255));
         saveButton.setText("Publish");
         saveButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -423,10 +445,22 @@ public class TenantFormDialog extends javax.swing.JDialog {
             }
         });
 
+        cancelButton.setFont(new java.awt.Font("Segoe UI Semibold", 0, 12)); // NOI18N
+        cancelButton.setForeground(new java.awt.Color(102, 102, 102));
         cancelButton.setText("Cancel");
+        cancelButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cancelButtonActionPerformed(evt);
+            }
+        });
+
+        jLabel19.setText("User Account");
+
+        userComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Select contact" }));
+        userComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                userComboBoxActionPerformed(evt);
             }
         });
 
@@ -479,12 +513,14 @@ public class TenantFormDialog extends javax.swing.JDialog {
                                 .addComponent(jLabel13)
                                 .addComponent(securityDepositField, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addComponent(jLabel18)
-                                .addComponent(emergencyContactComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(emergencyContactComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jLabel19)
+                        .addComponent(userComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainPanelLayout.createSequentialGroup()
                             .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                             .addComponent(saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(28, 28, 28)))
+                            .addGap(12, 12, 12)))
                     .addGroup(mainPanelLayout.createSequentialGroup()
                         .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(roomComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -493,7 +529,7 @@ public class TenantFormDialog extends javax.swing.JDialog {
                         .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(guardianComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel17))))
-                .addContainerGap(12, Short.MAX_VALUE))
+                .addContainerGap(23, Short.MAX_VALUE))
         );
         mainPanelLayout.setVerticalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -569,11 +605,15 @@ public class TenantFormDialog extends javax.swing.JDialog {
                         .addComponent(jLabel18)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(emergencyContactComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel19)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(userComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(saveButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cancelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(212, Short.MAX_VALUE))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
 
         jScrollPane2.setViewportView(mainPanel);
@@ -583,14 +623,12 @@ public class TenantFormDialog extends javax.swing.JDialog {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 450, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 461, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 834, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 856, Short.MAX_VALUE)
         );
 
         pack();
@@ -611,6 +649,10 @@ public class TenantFormDialog extends javax.swing.JDialog {
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cancelButtonActionPerformed
+
+    private void userComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userComboBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_userComboBoxActionPerformed
 
     /**
      * @param args the command line arguments
@@ -671,6 +713,7 @@ public class TenantFormDialog extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
@@ -692,5 +735,6 @@ public class TenantFormDialog extends javax.swing.JDialog {
     private javax.swing.JTextField securityDepositField;
     private javax.swing.JTextField studentIdField;
     private javax.swing.JLabel titleLabel;
+    private javax.swing.JComboBox userComboBox;
     // End of variables declaration//GEN-END:variables
 }

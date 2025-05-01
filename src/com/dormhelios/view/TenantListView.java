@@ -209,7 +209,8 @@ public class TenantListView extends javax.swing.JPanel {
         viewTenantButton = new javax.swing.JButton();
         editTenantButton = new javax.swing.JButton();
 
-        setBackground(new java.awt.Color(255, 255, 255));
+        setBackground(new java.awt.Color(250, 250, 250));
+        setPreferredSize(new java.awt.Dimension(1023, 500));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI Semibold", 0, 36)); // NOI18N
         jLabel1.setText("Tenants");
@@ -291,7 +292,7 @@ public class TenantListView extends javax.swing.JPanel {
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(viewTenantButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(editTenantButton, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(13, 13, 13))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 

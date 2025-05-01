@@ -172,7 +172,7 @@ public class GuardianDAOImpl implements GuardianDAO {
     // Helper
     private Guardian mapResultSetToGuardian(ResultSet rs) throws SQLException {
         Guardian g = new Guardian();
-        g.setGuardianId(rs.getInt("guardian_id"));
+        g.setGuardianId(rs.getInt("id"));
         g.setName(rs.getString("name"));
         g.setPhoneNumber(rs.getString("phone_number"));
         g.setEmail(rs.getString("email"));

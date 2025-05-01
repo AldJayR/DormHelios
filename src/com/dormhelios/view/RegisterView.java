@@ -44,6 +44,8 @@ public class RegisterView extends javax.swing.JFrame {
 
         jLabel1.setText("Email");
 
+        emailField.setBackground(new java.awt.Color(245, 245, 245));
+
         jLabel2.setText("Password");
 
         registerButton.setBackground(new java.awt.Color(51, 153, 255));
@@ -54,6 +56,8 @@ public class RegisterView extends javax.swing.JFrame {
                 registerButtonActionPerformed(evt);
             }
         });
+
+        passwordField.setBackground(new java.awt.Color(245, 245, 245));
 
         loginLinkButton.setForeground(new java.awt.Color(0, 102, 255));
         loginLinkButton.setText("<html>\n<u>Already have an account?</u>\n</html>");
@@ -68,6 +72,8 @@ public class RegisterView extends javax.swing.JFrame {
         });
 
         jLabel3.setText("Confirm Password");
+
+        confirmPasswordField.setBackground(new java.awt.Color(245, 245, 245));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);

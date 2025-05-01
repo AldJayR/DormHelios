@@ -181,6 +181,7 @@ public class MainDashboardController {
                 guardianDAO,
                 emergencyContactDAO,
                 paymentDAO,
+                userDAO,      // Pass UserDAO
                 mainView
             );
             tenantController.loadInitialData();
