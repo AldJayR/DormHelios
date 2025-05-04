@@ -19,7 +19,7 @@ public class UserDAOImpl implements UserDAO {
     private static final String FIND_BY_ID_SQL = "SELECT * FROM USERS WHERE id = ?";
     private static final String FIND_ALL_SQL = "SELECT * FROM USERS ORDER BY first_name";
     private static final String ADD_USER_SQL = "INSERT INTO USERS (username, password_hash, full_name, role, email, phone_number, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
-    private static final String UPDATE_USER_SQL = "UPDATE USERS SET username = ?, password_hash = ?, full_name = ?, role = ?, email = ?, phone_number = ?, is_active = ?, updated_at = NOW() WHERE user_id = ?";
+    private static final String UPDATE_USER_SQL = "UPDATE USERS SET password_hash = ?, first_name = ?, surname = ?, role = ?, email = ?, phone_number = ?, is_active = ?, updated_at = NOW() WHERE id = ?";
     private static final String REGISTER_USER_SQL = """
                                                     INSERT INTO USERS (email, password_hash, is_active, created_at, updated_at)
                                                     VALUES (?, ?, ?, NOW(), NOW())
@@ -125,9 +125,9 @@ public class UserDAOImpl implements UserDAO {
     public boolean updateUser(User user) {
         try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(UPDATE_USER_SQL)) {
 
-            pstmt.setString(1, user.getUsername());
-            pstmt.setString(2, user.getPasswordHash());
-            // pstmt.setString(3, user.getFullName());
+            pstmt.setString(1, user.getPasswordHash());
+            pstmt.setString(2, user.getFirstName());
+            pstmt.setString(3, user.getSurname());
             pstmt.setString(4, user.getRole().name());
             pstmt.setString(5, user.getEmail());
             pstmt.setString(6, user.getPhoneNumber());

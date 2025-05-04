@@ -3,13 +3,16 @@ package com.dormhelios.view;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import com.dormhelios.model.entity.Tenant;
+import com.dormhelios.model.entity.TenantWithRoom;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.RowFilter;
 import javax.swing.event.DocumentListener;
+import java.time.LocalDate;
 
 public class TenantListView extends javax.swing.JPanel {
 
@@ -40,6 +43,14 @@ public class TenantListView extends javax.swing.JPanel {
         sorter = new TableRowSorter<>(tableModel);
         tenantTable.setRowSorter(sorter);
 
+        // Set up filter combo box with improved options
+        filterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(
+            new String[] {"All Tenants", "Active Tenants", "Recent Tenants", "To Leave"}
+        ));
+        
+        // Set up search field placeholder text behavior
+        setupSearchFieldPlaceholder();
+
         // Adjust column widths (optional)
         tenantTable.getColumnModel().getColumn(0).setPreferredWidth(40);  // ID
         tenantTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Name
@@ -47,7 +58,34 @@ public class TenantListView extends javax.swing.JPanel {
         tenantTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Check-in Date
         tenantTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Status
     }
+    
+    /**
+     * Sets up the search field with placeholder text behavior.
+     * The placeholder text "Search" will disappear when the field gains focus
+     * and reappear when the field loses focus if it's empty.
+     */
+    private void setupSearchFieldPlaceholder() {
+        // Add placeholder text behavior to search field
+        searchField.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                // When field gains focus and contains the default "Search" text, clear it
+                if (searchField.getText().equals("Search")) {
+                    searchField.setText("");
+                }
+            }
+            
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                // When field loses focus and is empty, restore the "Search" placeholder
+                if (searchField.getText().isEmpty()) {
+                    searchField.setText("Search");
+                }
+            }
+        });
+    }
 
+    /*
     public void displayTenants(List<Tenant> tenants) {
         // Clear existing rows
         tableModel.setRowCount(0);
@@ -68,6 +106,33 @@ public class TenantListView extends javax.swing.JPanel {
         }
         // Optionally update row count label if you add one
         // rowCountLabel.setText("Total Tenants: " + tableModel.getRowCount());
+    }
+    */
+
+    /**
+     * Displays tenants with their room numbers in the table.
+     * This uses the TenantWithRoom class which contains the room number information.
+     *
+     * @param tenants List of TenantWithRoom objects to display
+     */
+    public void displayTenantsWithRooms(List<TenantWithRoom> tenants) {
+        // Clear existing rows
+        tableModel.setRowCount(0);
+        if (tenants == null) {
+            return; // Handle null list gracefully
+        }
+        
+        // Populate table
+        for (TenantWithRoom tenant : tenants) {
+            Object[] row = new Object[]{
+                tenant.getTenantId(),
+                tenant.getLastName() + ", " + tenant.getFirstName(), // Combine name
+                tenant.getRoomNumber() != null ? tenant.getRoomNumber() : "N/A", // Use the actual room number 
+                tenant.getLeaseStartDate() != null ? tenant.getLeaseStartDate().toString() : "N/A", // Format date as needed
+                getTenantStatus(tenant) // Determine status based on logic
+            };
+            tableModel.addRow(row);
+        }
     }
 
     private String getRoomNumberFromId(int roomId) {
@@ -115,21 +180,75 @@ public class TenantListView extends javax.swing.JPanel {
     }
 
     /**
-     * Applies filtering to the table based on the search text. Typically called
-     * by a listener attached by the controller.
+     * Applies filtering to the table based on the search text and filter combo box.
+     * Typically called by a listener attached by the controller.
      */
     public void filterTable() {
         String searchText = getSearchText();
-        RowFilter<DefaultTableModel, Object> rf = null;
-        try {
-            // Filter based on Name column (index 1) - case insensitive
-            // Add more columns to search if needed (e.g., using regex OR)
-            rf = RowFilter.regexFilter("(?i)" + searchText, 1);
-        } catch (java.util.regex.PatternSyntaxException e) {
-            // If regex is invalid, don't filter
-            return;
+        String filterSelection = getSelectedFilter();
+        
+        // Create a list to hold multiple filters if needed
+        List<RowFilter<DefaultTableModel, Object>> filters = new ArrayList<>();
+        
+        // Add search text filter if not empty
+        if (!searchText.isEmpty() && !searchText.equals("Search")) {
+            try {
+                // Filter based on Name column (index 1) - case insensitive
+                RowFilter<DefaultTableModel, Object> searchFilter = 
+                    RowFilter.regexFilter("(?i)" + searchText, 1);
+                filters.add(searchFilter);
+            } catch (java.util.regex.PatternSyntaxException e) {
+                // If regex is invalid, ignore this filter
+            }
         }
-        sorter.setRowFilter(rf);
+        
+        // Add combo box selection filter if not "All Tenants"
+        if (filterSelection != null && !filterSelection.equals("All Tenants") && !filterSelection.trim().isEmpty()) {
+            if (filterSelection.equals("Recent Tenants")) {
+                // Filter for tenants who moved in within last 30 days
+                LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
+                RowFilter<DefaultTableModel, Object> dateFilter = new RowFilter<DefaultTableModel, Object>() {
+                    @Override
+                    public boolean include(Entry<? extends DefaultTableModel, ? extends Object> entry) {
+                        // Check-in Date is in column 3
+                        Object checkInDateObj = entry.getValue(3);
+                        if (checkInDateObj != null && !checkInDateObj.equals("N/A")) {
+                            try {
+                                LocalDate checkInDate = LocalDate.parse(checkInDateObj.toString());
+                                return checkInDate.isAfter(thirtyDaysAgo);
+                            } catch (Exception e) {
+                                // If date can't be parsed, include the row
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                };
+                filters.add(dateFilter);
+            } else if (filterSelection.equals("To Leave")) {
+                // Filter for tenants with "To Leave" status
+                RowFilter<DefaultTableModel, Object> statusFilter = 
+                    RowFilter.regexFilter("^To Leave$", 4); // Status is in column 4
+                filters.add(statusFilter);
+            } else if (filterSelection.equals("Active Tenants")) {
+                // Filter for tenants with "Active" status
+                RowFilter<DefaultTableModel, Object> activeFilter = 
+                    RowFilter.regexFilter("^Active$", 4); // Status is in column 4
+                filters.add(activeFilter);
+            }
+        }
+        
+        if (filters.isEmpty()) {
+            // No filters, show all rows
+            sorter.setRowFilter(null);
+        } else if (filters.size() == 1) {
+            // Only one filter
+            sorter.setRowFilter(filters.get(0));
+        } else {
+            // Combine multiple filters with AND logic
+            RowFilter<DefaultTableModel, Object> andFilter = RowFilter.andFilter(filters);
+            sorter.setRowFilter(andFilter);
+        }
     }
 
     // --- Methods to Add Listeners ---

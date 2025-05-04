@@ -182,19 +182,37 @@ public class TenantFormDialog extends javax.swing.JDialog {
     }
 
     // --- Generic Helper for Selecting ComboBox Item by ID ---
-    private void selectComboBoxItemById(JComboBox<ComboBoxItem<Integer>> comboBox, Integer idToSelect) {
+    private void selectComboBoxItemById(JComboBox<?> comboBox, Integer idToSelect) {
         if (idToSelect == null) {
             comboBox.setSelectedIndex(0); // Select the prompt ("Select...")
             return;
         }
-        for (int i = 0; i < comboBox.getItemCount(); i++) {
-            ComboBoxItem<Integer> item = comboBox.getItemAt(i);
-            if (item != null && idToSelect.equals(item.getId())) {
-                comboBox.setSelectedIndex(i);
-                return;
+        
+        try {
+            // Check if the comboBox has been populated with ComboBoxItem objects
+            if (comboBox.getItemCount() > 0) {
+                Object item = comboBox.getItemAt(0);
+                if (!(item instanceof ComboBoxItem)) {
+                    return; // ComboBox hasn't been populated with proper models yet
+                }
             }
+            
+            for (int i = 0; i < comboBox.getItemCount(); i++) {
+                Object item = comboBox.getItemAt(i);
+                if (item instanceof ComboBoxItem) {
+                    ComboBoxItem<Integer> comboItem = (ComboBoxItem<Integer>) item;
+                    if (comboItem != null && idToSelect.equals(comboItem.getId())) {
+                        comboBox.setSelectedIndex(i);
+                        return;
+                    }
+                }
+            }
+            comboBox.setSelectedIndex(0); // Default to prompt if ID not found
+        } catch (Exception e) {
+            // Log exception or just silently handle it
+            System.out.println("Error selecting item by ID: " + e.getMessage());
+            comboBox.setSelectedIndex(0); // Default to first item on error
         }
-        comboBox.setSelectedIndex(0); // Default to prompt if ID not found
     }
 
     // --- Generic Helper for Getting Selected ID from ComboBox ---
@@ -650,10 +668,9 @@ public class TenantFormDialog extends javax.swing.JDialog {
         // TODO add your handling code here:
     }//GEN-LAST:event_cancelButtonActionPerformed
 
-    private void userComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userComboBoxActionPerformed
+    private void userComboBoxActionPerformed(java.awt.event.ActionEvent evt) {                                                 
         // TODO add your handling code here:
-    }//GEN-LAST:event_userComboBoxActionPerformed
-
+    } 
     /**
      * @param args the command line arguments
      */

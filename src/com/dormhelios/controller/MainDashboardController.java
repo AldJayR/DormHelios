@@ -49,7 +49,7 @@ public class MainDashboardController {
     private TenantDetailView tenantDetailView;   // Dialog for details
     private TenantController tenantController;   // Controller to manage tenant views
     private RoomListView roomListView;
-    ///private PaymentListView paymentListView;
+    private PaymentListView paymentListView;
     //private SettingsView settingsView;
     // Add UserManagementView etc. if implementing admin features
 
@@ -111,7 +111,7 @@ public class MainDashboardController {
         mainView.addDashboardButtonListener(e -> showDashboardPanel());
         mainView.addTenantsButtonListener(e -> showTenantListPanel());
         mainView.addDormsButtonListener(e -> showRoomListPanel());
-        //mainView.addPaymentsButtonListener(e -> showPaymentListPanel());
+        mainView.addPaymentsButtonListener(e -> showPaymentListPanel());
         // mainView.addSettingsButtonListener(e -> showSettingsPanel());
         mainView.addLogoutButtonListener(e -> logout());
     }
@@ -122,36 +122,50 @@ public class MainDashboardController {
     private void attachDashboardActionListeners() {
         if (dashboardPanel == null) return; // Should not happen if called after init
 
-        // Example: Add Tenant button opens the Tenant Form
+        // Connect Add Tenant button to the TenantController's add functionality
         dashboardPanel.addAddTenantButtonListener(e -> {
-            // Logic to open the Tenant Add/Edit Form (potentially involves TenantController)
-            LOGGER.info("Dashboard 'Add Tenant' clicked - Placeholder Action");
-            // Example: new TenantController(...).showAddTenantForm(); // Needs proper setup
-             JOptionPane.showMessageDialog(mainView, "Add Tenant action not fully implemented yet.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            LOGGER.info("Dashboard 'Add Tenant' button clicked - Opening add tenant form");
+            // Show tenant list panel first
+            showTenantListPanel();
+            // Use the existing tenant controller to show the add tenant form
+            if (tenantController != null) {
+                tenantController.showAddTenantForm();
+            }
         });
 
-        // Example: New Payment button opens the Payment Logging Dialog
+        // Connect New Payment button to the Payment functionality
         dashboardPanel.addNewPaymentButtonListener(e -> {
-             // Logic to open the Payment Logging Dialog (potentially involves PaymentController)
-             LOGGER.info("Dashboard 'New Payment' clicked - Placeholder Action");
-             // Example: new PaymentController(...).showLogPaymentDialog(); // Needs proper setup
-              JOptionPane.showMessageDialog(mainView, "New Payment action not fully implemented yet.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            LOGGER.info("Dashboard 'New Payment' button clicked - Opening payment logging dialog");
+            // Show payment list panel first
+            showPaymentListPanel();
+            // Open the payment logging dialog
+            if (paymentListView != null) {
+                // Since paymentListView is shown, the PaymentController should be initialized
+                // Use the "Add Payment" button in the payment list view to trigger the dialog
+                ActionEvent simulatedEvent = new ActionEvent(paymentListView, ActionEvent.ACTION_PERFORMED, "AddPayment");
+                paymentListView.getNewPaymentButton().getActionListeners()[0].actionPerformed(simulatedEvent);
+            }
         });
 
+        // Connect Add Room button to the Room functionality
         dashboardPanel.addAddRoomButtonListener(e -> {
-             // Logic to open the Room Add/Edit Form (potentially involves RoomController)
-             LOGGER.info("Dashboard 'Add Room' clicked - Placeholder Action");
-             // Example: new RoomController(...).showAddRoomForm(); // Needs proper setup
-              JOptionPane.showMessageDialog(mainView, "Add Room action not fully implemented yet.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            LOGGER.info("Dashboard 'Add Room' button clicked - Opening add room form");
+            // Show room list panel first
+            showRoomListPanel();
+            // Use the existing room controller to show the add room form
+            if (roomListView != null) {
+                // Trigger the "Add Room" button in the room list view
+                ActionEvent simulatedEvent = new ActionEvent(roomListView, ActionEvent.ACTION_PERFORMED, "AddRoom");
+                roomListView.getAddRoomsButton().getActionListeners()[0].actionPerformed(simulatedEvent);
+            }
         });
 
         dashboardPanel.addSendReminderButtonListener(e -> {
-             // Logic for sending reminders (complex, likely out of initial scope)
-             LOGGER.info("Dashboard 'Send Reminder' clicked - Placeholder Action");
-              JOptionPane.showMessageDialog(mainView, "Send Reminder action not implemented.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            // Logic for sending reminders (complex, likely out of initial scope)
+            LOGGER.info("Dashboard 'Send Reminder' clicked - Placeholder Action");
+            JOptionPane.showMessageDialog(mainView, "Send Reminder action not implemented.", "Info", JOptionPane.INFORMATION_MESSAGE);
         });
     }
-
 
     // --- Panel Display Methods ---
 
@@ -202,21 +216,27 @@ public class MainDashboardController {
         mainView.displayPanel(MainDashboardView.ROOMS_PANEL, mainView.getDormsButton());
     }
 
-    /*
-     private void showPaymentListPanel() {
-         if (paymentListView == null) {
+    private void showPaymentListPanel() {
+        if (paymentListView == null) {
             paymentListView = new PaymentListView();
-            // Instantiate PaymentController
-            // PaymentController paymentController = new PaymentController(paymentListView, paymentDAO, ...);
-            // paymentController.initializePaymentList();
+            // Instantiate PaymentController with all required dependencies
+            PaymentController paymentController = new PaymentController(
+                paymentListView, 
+                paymentDAO, 
+                tenantDAO, 
+                roomDAO, 
+                userDAO, 
+                loggedInUser, 
+                mainView
+            );
+            // Add payment panel to main view
             mainView.addContentPanel(paymentListView, MainDashboardView.PAYMENTS_PANEL);
-             LOGGER.info("Payment List Panel created (Controller/Data loading needed).");
-             paymentListView.add(new JLabel("Payment List View - Full implementation pending."));
+            LOGGER.info("Payment List Panel created and wired to PaymentController.");
+            // Load payment data through the controller
+            paymentController.loadPaymentData();
         }
         mainView.displayPanel(MainDashboardView.PAYMENTS_PANEL, mainView.getPaymentsButton());
-         // paymentController.loadPaymentData();
     }
-     */
 
      /*
      private void showSettingsPanel() {

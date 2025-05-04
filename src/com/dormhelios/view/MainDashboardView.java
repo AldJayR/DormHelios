@@ -15,7 +15,6 @@ public class MainDashboardView extends javax.swing.JFrame {
     public static final String TENANTS_PANEL = "TENANTS";
     public static final String ROOMS_PANEL = "ROOMS";
     public static final String PAYMENTS_PANEL = "PAYMENTS";
-    public static final String SETTINGS_PANEL = "SETTINGS";
     private CardLayout cardLayout;
 
     public MainDashboardView() {
@@ -42,7 +41,6 @@ public class MainDashboardView extends javax.swing.JFrame {
         sidebarPanel = new javax.swing.JPanel();
         userInfoLabel = new javax.swing.JLabel();
         tenantsButton = new javax.swing.JButton();
-        settingsButton = new javax.swing.JButton();
         dashboardButton = new javax.swing.JButton();
         dormsButton = new javax.swing.JButton();
         paymentsButton = new javax.swing.JButton();
@@ -65,15 +63,6 @@ public class MainDashboardView extends javax.swing.JFrame {
         tenantsButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 tenantsButtonActionPerformed(evt);
-            }
-        });
-
-        settingsButton.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        settingsButton.setText("Settings");
-        settingsButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        settingsButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                settingsButtonActionPerformed(evt);
             }
         });
 
@@ -129,7 +118,6 @@ public class MainDashboardView extends javax.swing.JFrame {
                     .addComponent(dashboardButton, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(dormsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(paymentsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(settingsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(tenantsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 0, Short.MAX_VALUE))
@@ -147,9 +135,7 @@ public class MainDashboardView extends javax.swing.JFrame {
                 .addComponent(dormsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(paymentsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
-                .addComponent(settingsButton, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 107, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 181, Short.MAX_VALUE)
                 .addComponent(logoutButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -201,9 +187,6 @@ public class MainDashboardView extends javax.swing.JFrame {
         return paymentsButton;
     }
 
-    public JButton getSettingsButton() {
-        return settingsButton;
-    }
 
     /**
      * Adds an ActionListener for the Dashboard navigation button.
@@ -250,9 +233,7 @@ public class MainDashboardView extends javax.swing.JFrame {
      *
      * @param listener ActionListener provided by the controller.
      */
-    public void addSettingsButtonListener(ActionListener listener) {
-        settingsButton.addActionListener(listener);
-    }
+
 
     public void addLogoutButtonListener(ActionListener listener) {
         logoutButton.addActionListener(listener);
@@ -277,7 +258,7 @@ public class MainDashboardView extends javax.swing.JFrame {
 
     private void highlightSidebarButton(JButton selectedButton) {
         // Reset all sidebar buttons to default style
-        JButton[] sidebarButtons = {dashboardButton, tenantsButton, dormsButton, paymentsButton, settingsButton};
+        JButton[] sidebarButtons = {dashboardButton, tenantsButton, dormsButton, paymentsButton};
         for (JButton btn : sidebarButtons) {
             if (btn != null) { // Check if button exists
                 btn.setBackground(Color.WHITE); // Default background
@@ -307,10 +288,6 @@ public class MainDashboardView extends javax.swing.JFrame {
     private void tenantsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tenantsButtonActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_tenantsButtonActionPerformed
-
-    private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_settingsButtonActionPerformed
 
     private void dashboardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dashboardButtonActionPerformed
         // TODO add your handling code here:
@@ -370,7 +347,6 @@ public class MainDashboardView extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton logoutButton;
     private javax.swing.JButton paymentsButton;
-    private javax.swing.JButton settingsButton;
     private javax.swing.JPanel sidebarPanel;
     private javax.swing.JButton tenantsButton;
     private javax.swing.JLabel userInfoLabel;

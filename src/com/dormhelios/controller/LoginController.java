@@ -2,6 +2,7 @@ package com.dormhelios.controller;
 
 import com.dormhelios.model.dao.*; // Import all DAO interfaces
 import com.dormhelios.model.entity.User;
+import com.dormhelios.util.CredentialManager;
 import com.dormhelios.util.PasswordUtils;
 import com.dormhelios.view.LoginView;
 import com.dormhelios.view.MainDashboardView;
@@ -38,6 +39,7 @@ public class LoginController {
         this.userDAO = userDAO;
 
         attachListeners();
+        loadSavedCredentials();
     }
 
     // --- Setters for Navigation Actions (Simple Dependency Injection) ---
@@ -60,6 +62,23 @@ public class LoginController {
         this.onRegisterRequest = onRegisterRequest;
     }
 
+    /**
+     * Loads any saved credentials and populates the login form if they exist.
+     */
+    private void loadSavedCredentials() {
+        Object[] credentials = CredentialManager.loadCredentials();
+        if (credentials != null) {
+            String email = (String) credentials[0];
+            char[] password = (char[]) credentials[1];
+            boolean rememberMe = (boolean) credentials[2];
+            
+            // Pre-fill the login form
+            loginView.setCredentials(email, password);
+            loginView.setRememberMeChecked(rememberMe);
+            
+            LOGGER.log(Level.INFO, "Loaded saved credentials for user: {0}", email);
+        }
+    }
 
     private void attachListeners() {
         loginView.addLoginButtonListener(new LoginButtonListener());
@@ -81,6 +100,7 @@ public class LoginController {
         public void actionPerformed(ActionEvent e) {
             String email = loginView.getEmailInput();
             char[] password = loginView.getPasswordInput();
+            boolean rememberMe = loginView.isRememberMeChecked();
 
             if (email.isEmpty() || password.length == 0) {
                 loginView.displayErrorMessage("Username/Email and Password cannot be empty.");
@@ -119,11 +139,12 @@ public class LoginController {
 
                 @Override
                 protected void done() {
-                    PasswordUtils.clearPasswordArray(password);
-                    loginView.setLoginEnabled(true);
                     try {
                         User user = get();
                         if (user != null) {
+                            // Handle remember me
+                            CredentialManager.saveCredentials(email, password, rememberMe);
+                            
                             LOGGER.log(Level.INFO, "User logged in: {0}", user.getUsername());
                             loginView.closeView();
                             if (onLoginSuccess != null) onLoginSuccess.run();
@@ -134,6 +155,9 @@ public class LoginController {
                     } catch (Exception ex) {
                         LOGGER.log(Level.SEVERE, "Error finalizing login", ex);
                         loginView.displayErrorMessage("An unexpected error occurred.");
+                    } finally {
+                        PasswordUtils.clearPasswordArray(password);
+                        loginView.setLoginEnabled(true);
                     }
                 }
             };

@@ -1,6 +1,7 @@
 package com.dormhelios.model.dao;
 
 import com.dormhelios.model.entity.Tenant;
+import com.dormhelios.model.entity.TenantWithRoom;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,6 +10,9 @@ public interface TenantDAO {
     Optional<Tenant> findById(int tenantId);
 
     List<Tenant> findAll();
+
+    // New method to find all tenants with their room numbers
+    List<TenantWithRoom> findAllWithRoomNumbers();
 
     List<Tenant> findByRoomId(int roomId); // Find tenants in a specific room
 

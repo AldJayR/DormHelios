@@ -1,6 +1,7 @@
 package com.dormhelios.model.dao;
 
 import com.dormhelios.model.entity.Tenant;
+import com.dormhelios.model.entity.TenantWithRoom; // Assuming this entity exists
 import com.dormhelios.util.DatabaseConnection; // Assumes this utility provides connections
 
 import java.sql.*;
@@ -24,15 +25,20 @@ public class TenantDAOImpl implements TenantDAO {
         "INSERT INTO TENANTS (user_id, room_id, guardian_id, emergency_contact_id, first_name, last_name, student_number, email, phone_number, permanent_address, lease_start_date, lease_end_date, deposit_amount, deposit_status, created_at, updated_at) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
     private static final String UPDATE_SQL = 
-        "UPDATE TENANTS SET user_id = ?, room_id = ?, guardian_id = ?, emergency_contact_id = ?, first_name = ?, last_name = ?, student_number = ?, email = ?, phone_number = ?, permanent_address = ?, lease_start_date = ?, lease_end_date = ?, deposit_amount = ?, deposit_status = ?, updated_at = NOW() " +
-        "WHERE tenant_id = ?";
-    private static final String DELETE_SQL = "DELETE FROM TENANTS WHERE tenant_id = ?";
-    private static final String ASSIGN_ROOM_SQL = "UPDATE TENANTS SET room_id = ?, updated_at = NOW() WHERE tenant_id = ?";
-    private static final String ASSIGN_GUARDIAN_SQL = "UPDATE TENANTS SET guardian_id = ?, updated_at = NOW() WHERE tenant_id = ?";
-    private static final String ASSIGN_EMERGENCY_CONTACT_SQL = "UPDATE TENANTS SET emergency_contact_id = ?, updated_at = NOW() WHERE tenant_id = ?";
-    private static final String ASSIGN_USER_ACCOUNT_SQL = "UPDATE TENANTS SET user_id = ?, updated_at = NOW() WHERE tenant_id = ?";
+        "UPDATE TENANTS SET user_id = ?, room_id = ?, guardian_id = ?, emergency_contact_id = ?, first_name = ?, last_name = ?, student_number = ?, email = ?, phone_number = ?, permanent_address = ?, lease_start_date = ?, lease_end_date = ?, deposit_amount = ?, deposit_status = ?, notes = ?, updated_at = NOW() " +
+        "WHERE id = ?";
+    private static final String DELETE_SQL = "DELETE FROM TENANTS WHERE id = ?";
+    private static final String ASSIGN_ROOM_SQL = "UPDATE TENANTS SET room_id = ?, updated_at = NOW() WHERE id = ?";
+    private static final String ASSIGN_GUARDIAN_SQL = "UPDATE TENANTS SET guardian_id = ?, updated_at = NOW() WHERE id = ?";
+    private static final String ASSIGN_EMERGENCY_CONTACT_SQL = "UPDATE TENANTS SET emergency_contact_id = ?, updated_at = NOW() WHERE id = ?";
+    private static final String ASSIGN_USER_ACCOUNT_SQL = "UPDATE TENANTS SET user_id = ?, updated_at = NOW() WHERE id = ?";
     private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM TENANTS WHERE is_active = TRUE"; // Filter active
-    private static final String SET_ACTIVE_STATUS_SQL = "UPDATE TENANTS SET is_active = ?, updated_at = NOW() WHERE tenant_id = ?"; // New SQL for soft delete
+    private static final String SET_ACTIVE_STATUS_SQL = "UPDATE TENANTS SET is_active = ?, updated_at = NOW() WHERE id = ?"; // New SQL for soft delete
+    private static final String FIND_ALL_WITH_ROOM_NUMBERS_SQL = 
+        "SELECT t.*, r.room_number FROM TENANTS t " +
+        "LEFT JOIN ROOMS r ON t.room_id = r.id " +
+        "WHERE t.is_active = 1 " +
+        "ORDER BY t.last_name, t.first_name";
 
     // --- DAO Methods ---
     @Override
@@ -199,8 +205,6 @@ public class TenantDAOImpl implements TenantDAO {
         }
     }
 
-   
-
     @Override
     public int countAll() {
         try (Connection conn = DatabaseConnection.getConnection();
@@ -228,6 +232,24 @@ public class TenantDAOImpl implements TenantDAO {
             LOGGER.log(Level.SEVERE, "Error setting active status for tenant: " + tenantId, e);
             return false;
         }
+    }
+
+    @Override
+    public List<TenantWithRoom> findAllWithRoomNumbers() {
+        List<TenantWithRoom> tenantsWithRooms = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection(); 
+             PreparedStatement pstmt = conn.prepareStatement(FIND_ALL_WITH_ROOM_NUMBERS_SQL); 
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                Tenant tenant = mapResultSetToTenant(rs);
+                String roomNumber = rs.getString("room_number"); // Get room number from joined table
+                tenantsWithRooms.add(new TenantWithRoom(tenant, roomNumber));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error finding all active tenants with room numbers", e);
+        }
+        return tenantsWithRooms;
     }
 
     // --- Helper methods for specific assignments ---

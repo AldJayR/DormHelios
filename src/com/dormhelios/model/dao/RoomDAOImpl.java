@@ -18,13 +18,13 @@ public class RoomDAOImpl implements RoomDAO {
     // --- SQL Constants ---
     private static final String FIND_BY_ID_SQL = "SELECT * FROM ROOMS WHERE id = ?";
     private static final String FIND_BY_ROOM_NUMBER_SQL = "SELECT * FROM ROOMS WHERE room_number = ?";
-    private static final String FIND_ALL_SQL = "SELECT * FROM ROOMS ORDER BY room_number";
-    private static final String FIND_BY_STATUS_SQL = "SELECT * FROM ROOMS WHERE status = ? ORDER BY room_number";
-    private static final String ADD_SQL = "INSERT INTO ROOMS (room_number, capacity, monthly_rate, status, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())";
+    private static final String FIND_ALL_SQL = "SELECT * FROM ROOMS WHERE is_active = 1 ORDER BY room_number";
+    private static final String FIND_BY_STATUS_SQL = "SELECT * FROM ROOMS WHERE status = ? AND is_active = 1 ORDER BY room_number";
+    private static final String ADD_SQL = "INSERT INTO ROOMS (room_number, capacity, monthly_rate, status, description, created_at, updated_at, is_active) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), 1)";
     private static final String UPDATE_SQL = "UPDATE ROOMS SET room_number = ?, capacity = ?, monthly_rate = ?, status = ?, description = ?, updated_at = NOW() WHERE id = ?";
     private static final String DELETE_SQL = "DELETE FROM ROOMS WHERE id = ?";
-    private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM ROOMS"; // New SQL
-    private static final String COUNT_BY_STATUS_SQL = "SELECT COUNT(*) FROM ROOMS WHERE status = ?"; // New SQL
+    private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM ROOMS WHERE is_active = 1"; // Updated SQL
+    private static final String COUNT_BY_STATUS_SQL = "SELECT COUNT(*) FROM ROOMS WHERE status = ? AND is_active = 1"; // Updated SQL
 
     @Override
     public Optional<Room> findById(int roomId) {
@@ -237,7 +237,26 @@ public class RoomDAOImpl implements RoomDAO {
     @Override
     public boolean setActiveStatus(int roomId, boolean status)
     {
-        return status;
+        // SQL for updating just the is_active column
+        String updateStatusSQL = "UPDATE ROOMS SET is_active = ?, updated_at = NOW() WHERE id = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection(); 
+             PreparedStatement pstmt = conn.prepareStatement(updateStatusSQL)) {
+            
+            // Set parameters - convert boolean to 1 or 0
+            pstmt.setInt(1, status ? 1 : 0);
+            pstmt.setInt(2, roomId);
+            
+            // Execute the update
+            int affectedRows = pstmt.executeUpdate();
+            
+            // Return true if the update was successful
+            return affectedRows > 0;
+            
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error updating room active status for room ID: " + roomId, e);
+            return false;
+        }
     }
 
     // --- Helper Method for Mapping ---

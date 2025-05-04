@@ -53,16 +53,16 @@ public class TenantController {
     }
 
     public void loadInitialData() {
-        SwingWorker<List<Tenant>, Void> worker = new SwingWorker<>() {
+        SwingWorker<List<TenantWithRoom>, Void> worker = new SwingWorker<>() {
             @Override
-            protected List<Tenant> doInBackground() {
-                return tenantDAO.findAll();
+            protected List<TenantWithRoom> doInBackground() {
+                return tenantDAO.findAllWithRoomNumbers();
             }
             @Override
             protected void done() {
                 try {
-                    List<Tenant> tenants = get();
-                    listView.displayTenants(tenants);
+                    List<TenantWithRoom> tenants = get();
+                    listView.displayTenantsWithRooms(tenants);
                 } catch (InterruptedException | ExecutionException e) {
                     LOGGER.log(Level.SEVERE, "Error loading tenants", e.getCause());
                     listView.displayErrorMessage("Error loading tenants: " + e.getCause().getMessage());
@@ -248,5 +248,15 @@ public class TenantController {
             }
         };
         worker.execute();
+    }
+
+    // --- Methods for External Access ---
+    
+    /**
+     * Public method to open the add tenant dialog.
+     * Can be called from external controllers.
+     */
+    public void showAddTenantForm() {
+        openAddDialog();
     }
 }

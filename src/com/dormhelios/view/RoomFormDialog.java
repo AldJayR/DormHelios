@@ -38,6 +38,7 @@ public class RoomFormDialog extends javax.swing.JDialog {
     public void setupForAdd() {
         setTitle("Add New Room");
         saveButton.setText("Save Room");
+        jLabel1.setText("Add New Room");
         this.currentRoom = null;
         clearForm();
     }
@@ -51,6 +52,7 @@ public class RoomFormDialog extends javax.swing.JDialog {
     public void setupForEdit(Room room) {
         setTitle("Edit Room: " + room.getRoomNumber());
         saveButton.setText("Update Room");
+        jLabel1.setText("Edit Room");
         currentRoom = room;
         populateForm(room);
     }
@@ -86,7 +88,12 @@ public class RoomFormDialog extends javax.swing.JDialog {
             return null;
         }
 
-        Room room = (currentRoom != null) ? currentRoom : new Room(); // Use existing if editing
+        Room room = new Room(); // Create a new Room object
+        
+        // If editing an existing room, preserve the ID
+        if (currentRoom != null) {
+            room.setRoomId(currentRoom.getRoomId());
+        }
 
         room.setRoomNumber(roomNumberField.getText().trim());
 
@@ -117,6 +124,11 @@ public class RoomFormDialog extends javax.swing.JDialog {
         }
 
         room.setStatus((Room.RoomStatus) statusComboBox.getSelectedItem());
+        
+        // Preserve other fields from the existing room if editing
+        if (currentRoom != null && currentRoom.getDescription() != null) {
+            room.setDescription(currentRoom.getDescription());
+        }
 
         return room;
     }

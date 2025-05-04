@@ -207,6 +207,34 @@ public class LoginView extends javax.swing.JFrame {
         emailField.requestFocusInWindow();
     }
 
+    /**
+     * Gets the state of the Remember Me checkbox.
+     * 
+     * @return true if the checkbox is selected, false otherwise
+     */
+    public boolean isRememberMeChecked() {
+        return rememberMeCheckbox.isSelected();
+    }
+    
+    /**
+     * Sets the state of the Remember Me checkbox.
+     * 
+     * @param checked true to check the box, false to uncheck it
+     */
+    public void setRememberMeChecked(boolean checked) {
+        rememberMeCheckbox.setSelected(checked);
+    }
+    
+    /**
+     * Sets the email and password fields with the provided values.
+     * 
+     * @param email The email to set
+     * @param password The password to set
+     */
+    public void setCredentials(String email, char[] password) {
+        emailField.setText(email);
+        passwordField.setText(new String(password));
+    }
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
         // TODO add your handling code here:

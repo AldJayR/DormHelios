@@ -137,10 +137,34 @@ public class RegisterController {
                     try {
                         int newId = get();
                         if (newId > 0) {
-                            registerView.displayInfoMessage("Registration successful! You can now log in.");
+                            registerView.displayInfoMessage("Registration successful! Redirecting to setup...");
                             LOGGER.log(Level.INFO, "New user registered with ID: {0}", newId);
-                            if (onRegistrationComplete != null) onRegistrationComplete.run();
-                            else registerView.closeView();
+                            
+                            // Get the newly created user
+                            User newUser = userDAO.findById(newId).orElse(null);
+                            if (newUser != null) {
+                                // Create and show the SetupView with the new user
+                                javax.swing.SwingUtilities.invokeLater(() -> {
+                                    registerView.closeView();
+                                    
+                                    // Create the setup view and controller
+                                    com.dormhelios.view.SetupView setupView = new com.dormhelios.view.SetupView();
+                                    com.dormhelios.controller.SetupController setupController = 
+                                        new com.dormhelios.controller.SetupController(setupView, userDAO, newUser);
+                                    
+                                    // Set navigation logic for after setup completion (to dashboard)
+                                    setupController.setOnSetupCompleteListener(() -> {
+                                        if (onRegistrationComplete != null) {
+                                            onRegistrationComplete.run();
+                                        }
+                                    });
+                                    
+                                    // Show the setup view
+                                    setupView.setVisible(true);
+                                });
+                            } else {
+                                registerView.displayErrorMessage("Unable to retrieve user information. Please try again.");
+                            }
                         } else {
                             registerView.displayErrorMessage(errorMessage);
                         }

@@ -44,6 +44,9 @@ public class PaymentListView extends javax.swing.JPanel {
         sorter = new TableRowSorter<>(tableModel);
         paymentTable.setRowSorter(sorter);
 
+        // Set up search field placeholder text behavior
+        setupSearchFieldPlaceholder();
+
         // Hide the ID column
         paymentTable.getColumnModel().getColumn(0).setMinWidth(0);
         paymentTable.getColumnModel().getColumn(0).setMaxWidth(0);
@@ -62,6 +65,32 @@ public class PaymentListView extends javax.swing.JPanel {
         javax.swing.table.DefaultTableCellRenderer rightRenderer = new javax.swing.table.DefaultTableCellRenderer();
         rightRenderer.setHorizontalAlignment(javax.swing.JLabel.RIGHT);
         paymentTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
+    }
+    
+    /**
+     * Sets up the search field with placeholder text behavior.
+     * The placeholder text "Search" will disappear when the field gains focus
+     * and reappear when the field loses focus if it's empty.
+     */
+    private void setupSearchFieldPlaceholder() {
+        // Add placeholder text behavior to search field
+        searchField.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                // When field gains focus and contains the default "Search" text, clear it
+                if (searchField.getText().equals("Search")) {
+                    searchField.setText("");
+                }
+            }
+            
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                // When field loses focus and is empty, restore the "Search" placeholder
+                if (searchField.getText().isEmpty()) {
+                    searchField.setText("Search");
+                }
+            }
+        });
     }
 
     public void displayPayments(List<Payment> payments /* Potentially List<PaymentDTO> */) {
@@ -189,6 +218,15 @@ public class PaymentListView extends javax.swing.JPanel {
 
     public JTable getPaymentTable() {
         return paymentTable;
+    }
+    
+    /**
+     * Gets the "Add Payment" button for external access.
+     * 
+     * @return The New Payment button component
+     */
+    public javax.swing.JButton getNewPaymentButton() {
+        return newPaymentButton;
     }
 
     /**

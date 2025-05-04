@@ -24,6 +24,7 @@ public class RoomListView extends javax.swing.JPanel {
 
     public RoomListView() {
         initComponents();
+        setupTable();
     }
 
     private void setupTable() {
@@ -42,6 +43,14 @@ public class RoomListView extends javax.swing.JPanel {
         sorter = new TableRowSorter<>(tableModel);
         roomTable.setRowSorter(sorter);
 
+        // Set up filter combo box with improved options
+        filterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(
+            new String[] {"All Rooms", "Vacant", "Occupied", "Maintenance"}
+        ));
+        
+        // Set up search field placeholder text behavior
+        setupSearchFieldPlaceholder();
+
         // Hide the ID column visually but keep it in the model for retrieval
         roomTable.getColumnModel().getColumn(0).setMinWidth(0);
         roomTable.getColumnModel().getColumn(0).setMaxWidth(0);
@@ -52,6 +61,32 @@ public class RoomListView extends javax.swing.JPanel {
         roomTable.getColumnModel().getColumn(2).setPreferredWidth(80);  // Capacity
         roomTable.getColumnModel().getColumn(3).setPreferredWidth(120); // Rate
         roomTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Status
+    }
+    
+    /**
+     * Sets up the search field with placeholder text behavior.
+     * The placeholder text "Search" will disappear when the field gains focus
+     * and reappear when the field loses focus if it's empty.
+     */
+    private void setupSearchFieldPlaceholder() {
+        // Add placeholder text behavior to search field
+        searchField.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                // When field gains focus and contains the default "Search" text, clear it
+                if (searchField.getText().equals("Search")) {
+                    searchField.setText("");
+                }
+            }
+            
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                // When field loses focus and is empty, restore the "Search" placeholder
+                if (searchField.getText().isEmpty()) {
+                    searchField.setText("Search");
+                }
+            }
+        });
     }
 
     public void updateSummaryCards(int total, int vacant, int occupied, int maintenance) {
@@ -209,6 +244,15 @@ public class RoomListView extends javax.swing.JPanel {
 
     public JTable getRoomTable() {
         return roomTable;
+    }
+    
+    /**
+     * Gets the "Add Room" button for external access.
+     * 
+     * @return The Add Rooms button component
+     */
+    public javax.swing.JButton getAddRoomsButton() {
+        return addRoomsButton;
     }
 
     /**
