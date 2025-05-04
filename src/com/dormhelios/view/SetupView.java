@@ -3,12 +3,12 @@ package com.dormhelios.view;
 import javax.swing.JOptionPane;
 import java.awt.event.ActionListener;
 
-public class RegisterView extends javax.swing.JFrame {
+public class SetupView extends javax.swing.JFrame {
 
     /**
      * Creates new form LoginForm
      */
-    public RegisterView() {
+    public SetupView() {
         initComponents();
         setLocationRelativeTo(null);
         setTitle("DormHelios - Login");
@@ -250,7 +250,7 @@ public class RegisterView extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new RegisterView().setVisible(true);
+                new SetupView().setVisible(true);
             }
         });
     }
