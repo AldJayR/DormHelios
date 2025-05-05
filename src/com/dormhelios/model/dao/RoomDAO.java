@@ -6,22 +6,21 @@ import java.util.Optional;
 
 public interface RoomDAO {
 
+    // --- Basic CRUD operations ---
     Optional<Room> findById(int roomId);
-
     Optional<Room> findByRoomNumber(String roomNumber);
-
     List<Room> findAll();
+    List<Room> findByStatus(Room.RoomStatus status);
+    int addRoom(Room room);
+    boolean updateRoom(Room room);
+    boolean deleteRoom(int roomId);
 
-    List<Room> findByStatus(Room.RoomStatus status); // Find vacant/occupied rooms
-
-    int countAll(); // New method
-    int countByStatus(Room.RoomStatus status); // New method
-
-    int addRoom(Room room); // Return generated ID
-    
+    // --- Additional operations ---
+    int countAll();
+    int countByStatus(Room.RoomStatus status);
     boolean setActiveStatus(int roomId, boolean status);
 
-    boolean updateRoom(Room room);
-
-    boolean deleteRoom(int roomId); // Careful! Only if no tenants assigned?
+    // --- Slots management operations ---
+    boolean decrementSlotsAvailable(int roomId);
+    boolean incrementSlotsAvailable(int roomId);
 }

@@ -214,7 +214,7 @@ public class ReceiptDialog extends javax.swing.JDialog {
         jLabel6.setText("Payment Date");
 
         paymentDateValueLabel.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        paymentDateValueLabel.setText("April 10, 2025");
+        paymentDateValueLabel.setText("2025-10-25");
 
         jLabel8.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel8.setText("Amount Paid");
@@ -259,14 +259,13 @@ public class ReceiptDialog extends javax.swing.JDialog {
             .addGroup(receiptContentPanelLayout.createSequentialGroup()
                 .addGroup(receiptContentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(receiptContentPanelLayout.createSequentialGroup()
-                        .addGap(118, 118, 118)
-                        .addComponent(jLabel12))
-                    .addGroup(receiptContentPanelLayout.createSequentialGroup()
-                        .addGap(145, 145, 145)
-                        .addComponent(qrCodeLabel))
-                    .addGroup(receiptContentPanelLayout.createSequentialGroup()
                         .addGap(20, 20, 20)
                         .addGroup(receiptContentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(receiptContentPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(tenantValueLabel)
+                                .addGap(75, 75, 75))
                             .addGroup(receiptContentPanelLayout.createSequentialGroup()
                                 .addComponent(jLabel10)
                                 .addGap(94, 94, 94)
@@ -282,40 +281,40 @@ public class ReceiptDialog extends javax.swing.JDialog {
                                 .addGroup(receiptContentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(receiptContentPanelLayout.createSequentialGroup()
                                         .addComponent(jLabel4)
-                                        .addGap(97, 97, 97)
+                                        .addGap(94, 94, 94)
                                         .addComponent(roomNumberValueLabel))
                                     .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 347, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGroup(receiptContentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addGroup(receiptContentPanelLayout.createSequentialGroup()
-                                        .addComponent(jLabel2)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 143, Short.MAX_VALUE)
-                                        .addComponent(tenantValueLabel)
-                                        .addGap(75, 75, 75))
                                     .addComponent(jLabel1)
-                                    .addComponent(jSeparator1)
+                                    .addComponent(jSeparator1, javax.swing.GroupLayout.DEFAULT_SIZE, 347, Short.MAX_VALUE)
                                     .addComponent(jSeparator2)))
                             .addGroup(receiptContentPanelLayout.createSequentialGroup()
                                 .addComponent(jLabel6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(paymentDateValueLabel)
-                                .addGap(66, 66, 66))))
+                                .addGap(100, 100, 100)
+                                .addComponent(paymentDateValueLabel))))
+                    .addGroup(receiptContentPanelLayout.createSequentialGroup()
+                        .addGap(118, 118, 118)
+                        .addComponent(jLabel12))
                     .addGroup(receiptContentPanelLayout.createSequentialGroup()
                         .addGap(28, 28, 28)
                         .addComponent(downloadButton, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(printButton, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(12, 12, 12)
-                        .addComponent(doneButton, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(doneButton, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(receiptContentPanelLayout.createSequentialGroup()
+                        .addGap(110, 110, 110)
+                        .addComponent(qrCodeLabel)))
                 .addContainerGap(22, Short.MAX_VALUE))
         );
         receiptContentPanelLayout.setVerticalGroup(
             receiptContentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(receiptContentPanelLayout.createSequentialGroup()
-                .addGap(17, 17, 17)
+                .addGap(14, 14, 14)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(33, 33, 33)
+                .addGap(36, 36, 36)
                 .addGroup(receiptContentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(tenantValueLabel))
@@ -347,14 +346,14 @@ public class ReceiptDialog extends javax.swing.JDialog {
                 .addComponent(jSeparator6, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jLabel12)
-                .addGap(51, 51, 51)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(qrCodeLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 155, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 144, Short.MAX_VALUE)
                 .addGroup(receiptContentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(downloadButton, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(printButton, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(doneButton, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(20, 20, 20))
+                .addGap(14, 14, 14))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -365,9 +364,7 @@ public class ReceiptDialog extends javax.swing.JDialog {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(receiptContentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(receiptContentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();

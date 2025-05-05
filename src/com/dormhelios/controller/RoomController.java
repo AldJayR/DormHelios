@@ -11,6 +11,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -22,7 +24,7 @@ import java.util.logging.Logger;
  * Handles displaying rooms, adding, editing, deleting, searching, and
  * filtering.
  */
-public class RoomController {
+public class RoomController implements PropertyChangeListener {
 
     private static final Logger LOGGER = Logger.getLogger(RoomController.class.getName());
 
@@ -36,6 +38,11 @@ public class RoomController {
         this.roomListView = roomListView;
         this.roomDAO = roomDAO;
         this.mainView = mainView; // Store parent frame reference
+
+        // Register as a property change listener to the main view
+        if (mainView != null) {
+            mainView.addPropertyChangeListener(this);
+        }
 
         attachListeners();
     }
@@ -300,6 +307,18 @@ public class RoomController {
                 }
             };
             worker.execute();
+        }
+    }
+
+    /**
+     * Handles property change events, specifically for room data changes
+     * initiated by other controllers.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if ("ROOM_DATA_CHANGED".equals(evt.getPropertyName())) {
+            LOGGER.info("Room data change event received, refreshing room list");
+            loadInitialData(); // Reload the room data
         }
     }
 

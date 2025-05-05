@@ -25,4 +25,17 @@ public interface PaymentDAO {
     boolean deletePayment(int paymentId); // Use with extreme caution!
 
     BigDecimal sumAmountByDateRange(LocalDate startDate, LocalDate endDate); // New method for summing
+    
+    /**
+     * Find payments that are overdue (past due date but not paid)
+     * @return list of overdue payments
+     */
+    List<Payment> findOverduePayments();
+    
+    /**
+     * Find the most recent payments
+     * @param limit maximum number of payments to return
+     * @return list of recent payments, ordered by date (most recent first)
+     */
+    List<Payment> findRecentPayments(int limit);
 }

@@ -16,6 +16,7 @@ import java.text.NumberFormat; // For currency formatting
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -50,6 +51,8 @@ public class MainDashboardController {
     private TenantController tenantController;   // Controller to manage tenant views
     private RoomListView roomListView;
     private PaymentListView paymentListView;
+    private SendReminderDialog reminderDialog;
+    private ReminderController reminderController;
     //private SettingsView settingsView;
     // Add UserManagementView etc. if implementing admin features
 
@@ -161,9 +164,8 @@ public class MainDashboardController {
         });
 
         dashboardPanel.addSendReminderButtonListener(e -> {
-            // Logic for sending reminders (complex, likely out of initial scope)
-            LOGGER.info("Dashboard 'Send Reminder' clicked - Placeholder Action");
-            JOptionPane.showMessageDialog(mainView, "Send Reminder action not implemented.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            LOGGER.info("Dashboard 'Send Reminder' clicked - Opening reminder dialog");
+            showSendReminderDialog();
         });
     }
 
@@ -265,20 +267,66 @@ public class MainDashboardController {
                 LOGGER.info("Loading dashboard data in background...");
                 // Fetch data using efficient DAO methods
                 int tenantCount = tenantDAO.countAll(); // Efficient count of active tenants
-                int totalRooms = roomDAO.countAll(); // Efficient count of active rooms
-                int occupiedCount = roomDAO.countByStatus(Room.RoomStatus.OCCUPIED); // Efficient count
-
+                
+                // Calculate tenants added this month
                 YearMonth currentMonth = YearMonth.now();
                 LocalDate startOfMonth = currentMonth.atDay(1);
                 LocalDate endOfMonth = currentMonth.atEndOfMonth();
+                
+                // Get tenant count change for current month
+                int newTenantsThisMonth = tenantDAO.countNewTenantsByDateRange(startOfMonth, endOfMonth);
+                
+                // Get room statistics
+                int totalRooms = roomDAO.countAll(); // Efficient count of active rooms
+                int occupiedCount = roomDAO.countByStatus(Room.RoomStatus.OCCUPIED); // Efficient count
+
+                // Get revenue for current month
                 BigDecimal revenue = paymentDAO.sumAmountByDateRange(startOfMonth, endOfMonth); // Efficient sum
 
-                // Fetch reminders/alerts (requires custom logic/queries)
-                List<String> reminders = List.of("Placeholder: Payment Overdue R101", "Placeholder: Incoming Payment R203");
-                // Fetch recent activities (requires an audit log table/mechanism)
-                List<String> activities = List.of("Placeholder: Added Tenant X", "Placeholder: Logged Payment Y");
+                // Get overdue payments - could be implemented in PaymentDAO
+                List<Payment> overduePayments = paymentDAO.findOverduePayments();
+                List<String> reminders = new ArrayList<>();
+                
+                // Transform overdue payments into readable reminders
+                for (Payment payment : overduePayments) {
+                    String tenantName = payment.getTenant() != null ? 
+                            payment.getTenant().getFirstName() + " " + payment.getTenant().getLastName() : 
+                            "Unknown";
+                    String roomNumber = payment.getRoom() != null ? 
+                            payment.getRoom().getRoomNumber() : 
+                            "Unknown";
+                    
+                    reminders.add("Payment overdue: " + tenantName + " (Room " + roomNumber + ")");
+                }
+                
+                // If no overdue payments found, add a placeholder message
+                if (reminders.isEmpty()) {
+                    reminders.add("No overdue payments");
+                }
+                
+                // Get recent activities - ideally from an audit log
+                // This could be enhanced with an actual AuditLogDAO
+                List<String> activities = new ArrayList<>();
+                List<Payment> recentPayments = paymentDAO.findRecentPayments(5); // Get 5 most recent payments
+                
+                // Transform recent payments into readable activities
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd");
+                for (Payment payment : recentPayments) {
+                    String date = payment.getPaymentDate().format(formatter);
+                    String tenantName = payment.getTenant() != null ? 
+                            payment.getTenant().getFirstName() + " " + payment.getTenant().getLastName() : 
+                            "Unknown";
+                    
+                    activities.add(date + ": Payment received from " + tenantName + 
+                            " (" + NumberFormat.getCurrencyInstance(new Locale("en", "PH")).format(payment.getAmount()) + ")");
+                }
+                
+                // If no recent payments found, add a placeholder message
+                if (activities.isEmpty()) {
+                    activities.add("No recent payment activities");
+                }
 
-                return new DashboardData(tenantCount, occupiedCount, totalRooms, revenue, reminders, activities);
+                return new DashboardData(tenantCount, occupiedCount, totalRooms, revenue, reminders, activities, newTenantsThisMonth);
             }
 
             @Override
@@ -286,7 +334,8 @@ public class MainDashboardController {
                 try {
                     DashboardData data = get(); // Get results from doInBackground
                     // --- Update UI on the EDT ---
-                    dashboardPanel.setTotalTenants(data.tenantCount, "+? this month"); // Need logic for change text
+                    String tenantChangeText = "+" + data.newTenantsThisMonth + " this month";
+                    dashboardPanel.setTotalTenants(data.tenantCount, tenantChangeText);
 
                     String occupancyRateStr = "N/A";
                     String occupancyDetailStr = String.format("%d out of %d rooms", data.occupiedCount, data.totalRooms);
@@ -318,7 +367,7 @@ public class MainDashboardController {
                 } catch (ExecutionException e) {
                     LOGGER.log(Level.SEVERE, "Error loading dashboard data", e.getCause());
                     // Show error message on dashboard panel or dialog
-                     JOptionPane.showMessageDialog(mainView, "Error loading dashboard data: " + e.getCause().getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(mainView, "Error loading dashboard data: " + e.getCause().getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 } finally {
                     // Re-enable controls if they were disabled
                     // dashboardPanel.setLoadingState(false);
@@ -359,14 +408,31 @@ public class MainDashboardController {
         final BigDecimal monthlyRevenue;
         final List<String> reminders;
         final List<String> activities;
+        final int newTenantsThisMonth;
 
-        DashboardData(int tenantCount, long occupiedCount, int totalRooms, BigDecimal monthlyRevenue, List<String> reminders, List<String> activities) {
+        DashboardData(int tenantCount, long occupiedCount, int totalRooms, BigDecimal monthlyRevenue, List<String> reminders, List<String> activities, int newTenantsThisMonth) {
             this.tenantCount = tenantCount;
             this.occupiedCount = occupiedCount;
             this.totalRooms = totalRooms;
             this.monthlyRevenue = monthlyRevenue;
             this.reminders = reminders;
             this.activities = activities;
+            this.newTenantsThisMonth = newTenantsThisMonth;
         }
+    }
+
+    /**
+     * Shows the send reminder dialog and initializes the controller if needed
+     */
+    private void showSendReminderDialog() {
+        // Create the dialog and controller if they don't exist
+        if (reminderDialog == null) {
+            LOGGER.info("Creating new SendReminderDialog and ReminderController");
+            reminderDialog = new SendReminderDialog(mainView, true);
+            reminderController = new ReminderController(reminderDialog, tenantDAO, mainView);
+        }
+        
+        // Show the dialog
+        reminderController.showSendReminderDialog();
     }
 }

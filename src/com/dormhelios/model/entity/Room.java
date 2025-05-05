@@ -16,6 +16,7 @@ public class Room {
     private int roomId;
     private String roomNumber; // Unique identifier like "A101"
     private int capacity;
+    private int slotsAvailable; // Added field for available slots
     private BigDecimal monthlyRate;
     private RoomStatus status;
     private String description; // Nullable
@@ -26,6 +27,7 @@ public class Room {
     public Room() {
         // Set defaults
         this.capacity = 1;
+        this.slotsAvailable = 1; // Set default equal to capacity
         this.status = RoomStatus.VACANT;
         this.monthlyRate = BigDecimal.ZERO;
         this.isActive = true; // Default new rooms to active
@@ -35,6 +37,7 @@ public class Room {
         this(); // Call default constructor
         this.roomNumber = roomNumber;
         this.capacity = capacity;
+        this.slotsAvailable = capacity; // Set slots available equal to capacity
         this.monthlyRate = monthlyRate;
     }
 
@@ -62,6 +65,14 @@ public class Room {
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
+    }
+
+    public int getSlotsAvailable() {
+        return slotsAvailable;
+    }
+
+    public void setSlotsAvailable(int slotsAvailable) {
+        this.slotsAvailable = slotsAvailable;
     }
 
     public BigDecimal getMonthlyRate() {

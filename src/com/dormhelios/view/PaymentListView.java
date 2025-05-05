@@ -116,6 +116,43 @@ public class PaymentListView extends javax.swing.JPanel {
         // updatePaginationInfo();
     }
 
+    /**
+     * Updates the view with payment data including related tenant and room details.
+     * 
+     * @param payments List of payments to display
+     * @param tenantNames Map of tenant IDs to names
+     * @param roomNumbers Map of tenant IDs to room numbers
+     */
+    public void displayPayments(List<Payment> payments, java.util.Map<Integer, String> tenantNames, java.util.Map<Integer, String> roomNumbers) {
+        tableModel.setRowCount(0); // Clear existing rows
+        if (payments == null) {
+            System.out.println("WARNING: Payment list is null in displayPayments");
+            return;
+        }
+
+        System.out.println("Displaying " + payments.size() + " payments in PaymentListView");
+        
+        for (Payment payment : payments) {
+            Object[] row = new Object[]{
+                payment.getPaymentId(), // Hidden ID
+                payment.getPaymentDate().format(DATE_FORMATTER),
+                tenantNames.getOrDefault(payment.getTenantId(), "Unknown"), // Get tenant name from map
+                roomNumbers.getOrDefault(payment.getTenantId(), "N/A"), // Get room number from map
+                CURRENCY_FORMATTER.format(payment.getAmount()),
+                formatPeriodCovered(payment.getPeriodCoveredStart(), payment.getPeriodCoveredEnd()),
+                payment.getPaymentMethod() != null ? payment.getPaymentMethod().name() : "N/A",
+                "View" // Action text for the receipt column
+            };
+            System.out.println("Adding payment row: ID=" + payment.getPaymentId() + 
+                               ", Tenant=" + tenantNames.getOrDefault(payment.getTenantId(), "Unknown") +
+                               ", Amount=" + payment.getAmount());
+            tableModel.addRow(row);
+        }
+        System.out.println("Table now has " + tableModel.getRowCount() + " rows");
+        // Update pagination info if implemented
+        // updatePaginationInfo();
+    }
+
     // --- Placeholder Helper Methods (Controller/Service should provide real data) ---
     private String getTenantNameFromId(int tenantId) {
         // TODO: Fetch Tenant Name via TenantDAO or use pre-joined data
@@ -161,17 +198,33 @@ public class PaymentListView extends javax.swing.JPanel {
         return searchField.getText().trim();
     }
 
-   
     public void filterTableBySearch() {
         String searchText = getSearchText();
-        RowFilter<DefaultTableModel, Object> rf = null;
+        
+        // Don't filter if the search field contains the placeholder text "Search"
+        if (searchText.equals("Search")) {
+            sorter.setRowFilter(null); // Clear any existing filter
+            System.out.println("Search text is placeholder 'Search', no filtering applied");
+            return;
+        }
+        
+        if (searchText.isEmpty()) {
+            sorter.setRowFilter(null); // Clear any existing filter
+            System.out.println("Search text is empty, no filtering applied");
+            return;
+        }
+        
+        System.out.println("Filtering table with search text: '" + searchText + "'");
+        
         try {
             // Filter based on Tenant Name (col 2) or Room No (col 3) or Method (col 6) - case insensitive
-            rf = RowFilter.regexFilter("(?i)" + searchText, 2, 3, 6);
+            RowFilter<DefaultTableModel, Object> rf = RowFilter.regexFilter("(?i)" + searchText, 2, 3, 6);
+            sorter.setRowFilter(rf);
+            System.out.println("Filter applied, visible rows now: " + paymentTable.getRowCount());
         } catch (java.util.regex.PatternSyntaxException e) {
+            System.out.println("Invalid regex pattern in search: " + e.getMessage());
             return; // Ignore invalid regex
         }
-        sorter.setRowFilter(rf);
     }
 
     // --- Methods to Add Listeners ---
@@ -263,7 +316,7 @@ public class PaymentListView extends javax.swing.JPanel {
 
         searchField.setText("Search");
 
-        filterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All Payments", "Most Recent", "Old" }));
+        filterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All Payments", "Most Recent First", "Oldest First" }));
 
         paymentTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {

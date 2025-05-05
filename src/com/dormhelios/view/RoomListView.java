@@ -6,6 +6,7 @@ import java.text.NumberFormat; // For currency formatting
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.logging.Logger; // For logging
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.RowFilter;
@@ -21,6 +22,7 @@ public class RoomListView extends javax.swing.JPanel {
     private DefaultTableModel tableModel;
     private TableRowSorter<DefaultTableModel> sorter; // For sorting and filtering
     private static final NumberFormat CURRENCY_FORMATTER = NumberFormat.getCurrencyInstance(new Locale("en", "PH"));
+    private static final Logger LOGGER = Logger.getLogger(RoomListView.class.getName()); // Logger for debugging
 
     public RoomListView() {
         initComponents();
@@ -29,7 +31,7 @@ public class RoomListView extends javax.swing.JPanel {
 
     private void setupTable() {
         // Define table columns - Match your wireframe/needs
-        String[] columnNames = {"ID", "Room No.", "Capacity", "Monthly Rate", "Status"}; // Added ID (hidden maybe)
+        String[] columnNames = {"ID", "Room No.", "Capacity", "Available Slots", "Monthly Rate", "Status"}; // Added Available Slots column
         tableModel = new DefaultTableModel(columnNames, 0) {
             // Make table cells non-editable by default
             @Override
@@ -59,8 +61,9 @@ public class RoomListView extends javax.swing.JPanel {
         // Adjust other column widths (optional)
         roomTable.getColumnModel().getColumn(1).setPreferredWidth(100); // Room No.
         roomTable.getColumnModel().getColumn(2).setPreferredWidth(80);  // Capacity
-        roomTable.getColumnModel().getColumn(3).setPreferredWidth(120); // Rate
-        roomTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Status
+        roomTable.getColumnModel().getColumn(3).setPreferredWidth(120); // Available Slots
+        roomTable.getColumnModel().getColumn(4).setPreferredWidth(120); // Rate
+        roomTable.getColumnModel().getColumn(5).setPreferredWidth(100); // Status
     }
     
     /**
@@ -113,6 +116,7 @@ public class RoomListView extends javax.swing.JPanel {
                 room.getRoomId(), // Include ID in the model
                 room.getRoomNumber(),
                 room.getCapacity(),
+                room.getSlotsAvailable(), // Fixed method name
                 CURRENCY_FORMATTER.format(room.getMonthlyRate() != null ? room.getMonthlyRate() : 0), // Format currency
                 room.getStatus() != null ? room.getStatus().name() : "N/A" // Display status name
             };
@@ -164,6 +168,11 @@ public class RoomListView extends javax.swing.JPanel {
     public void filterTable() {
         String searchText = getSearchText();
         String statusFilter = getSelectedFilter();
+        
+        // If search field contains placeholder text, treat as empty
+        if (searchText.equals("Search")) {
+            searchText = "";
+        }
 
         RowFilter<DefaultTableModel, Object> combinedFilter = null;
         List<RowFilter<DefaultTableModel, Object>> filters = new ArrayList<>();
@@ -174,16 +183,28 @@ public class RoomListView extends javax.swing.JPanel {
                 filters.add(RowFilter.regexFilter("(?i)" + searchText, 1));
             } catch (java.util.regex.PatternSyntaxException e) {
                 // Ignore invalid regex
+                LOGGER.warning("Invalid search regex: " + e.getMessage());
             }
         }
 
-        // Status filter (Column 4 is Status)
+        // Status filter (Column 5 is Status) - case insensitive
         if (!statusFilter.equals("All Rooms")) {
             try {
-                // Exact match for status enum name - case insensitive comparison might be needed depending on source data
-                filters.add(RowFilter.regexFilter("^" + statusFilter + "$", 4)); // Use regex for exact match
+                // Map the filter combo box values to potential status values
+                String statusRegex;
+                if (statusFilter.equalsIgnoreCase("Maintenance")) {
+                    // Special case for "Maintenance" to match "UNDER_MAINTENANCE"
+                    statusRegex = "(?i)UNDER_MAINTENANCE|Maintenance";
+                } else {
+                    // For "Vacant" and "Occupied" - make case insensitive
+                    statusRegex = "(?i)" + statusFilter;
+                }
+                
+                // Apply the case-insensitive filter to status column
+                filters.add(RowFilter.regexFilter(statusRegex, 5));
             } catch (java.util.regex.PatternSyntaxException e) {
-                // Ignore
+                // Ignore invalid regex
+                LOGGER.warning("Invalid status filter regex: " + e.getMessage());
             }
         }
 
@@ -192,7 +213,12 @@ public class RoomListView extends javax.swing.JPanel {
             combinedFilter = RowFilter.andFilter(filters);
         }
 
-        sorter.setRowFilter(combinedFilter); // Apply the combined filter (null clears filter)
+        // Apply the filter
+        sorter.setRowFilter(combinedFilter); // null clears filter
+        
+        // Log the filtering action for debugging
+        LOGGER.fine("Table filtered - Search: '" + searchText + "', Status: '" + statusFilter + 
+                    "', Filters applied: " + filters.size());
     }
 
     // --- Methods to Add Listeners ---

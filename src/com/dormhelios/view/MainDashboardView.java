@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import java.awt.Color;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 public class MainDashboardView extends javax.swing.JFrame {
 
@@ -16,12 +18,27 @@ public class MainDashboardView extends javax.swing.JFrame {
     public static final String ROOMS_PANEL = "ROOMS";
     public static final String PAYMENTS_PANEL = "PAYMENTS";
     private CardLayout cardLayout;
+    private final PropertyChangeSupport propertyChangeSupport;
 
     public MainDashboardView() {
+        propertyChangeSupport = new PropertyChangeSupport(this);
         initComponents();
         setLocationRelativeTo(null);
         setupComponents();
         setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
+    }
+
+    // Add property change support methods
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+
+    public void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
     }
 
     /**

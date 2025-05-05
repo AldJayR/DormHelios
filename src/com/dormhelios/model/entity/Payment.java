@@ -27,6 +27,10 @@ public class Payment {
     private String notes;            // Nullable
     private LocalDateTime createdAt; // Timestamp when logged
 
+    // Transient properties for dashboard display (not persisted)
+    private Tenant tenant;
+    private Room room;
+
     public Payment() {
         this.amount = BigDecimal.ZERO;
     }
@@ -126,6 +130,22 @@ public class Payment {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Tenant getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
     }
 
     // --- equals, hashCode, toString ---

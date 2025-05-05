@@ -67,6 +67,9 @@ public class PaymentController {
         this.mainView = mainView;
 
         attachListeners();
+        
+        // Load payment data immediately when controller is initialized
+        loadPaymentData();
     }
 
     /**
@@ -121,7 +124,7 @@ public class PaymentController {
      */
     public void loadPaymentData() {
         String filter = paymentListView.getSelectedFilter(); // "All Payments", "Most Recent First", "Oldest First"
-        LOGGER.info("Loading payment data with filter: " + filter);
+        LOGGER.log(Level.INFO, "Loading payment data with filter: " + filter);
 
         // Show loading state (optional)
         // paymentListView.showLoadingState(true);
@@ -134,6 +137,7 @@ public class PaymentController {
                     case "Oldest First":
                         // TODO: Add findAndSortByDate(ASC) to PaymentDAO or sort here
                         payments = paymentDAO.findAll(); // Fetch all
+                        LOGGER.log(Level.INFO, "Retrieved {0} payments from DAO findAll() method", payments.size());
                         payments.sort(Comparator.comparing(Payment::getPaymentDate)); // Sort ascending
                         break;
                     case "Most Recent First":
@@ -141,6 +145,7 @@ public class PaymentController {
                     default:
                         // TODO: Add findAndSortByDate(DESC) to PaymentDAO or ensure default is DESC
                         payments = paymentDAO.findAll(); // Fetch all (assuming default sort is recent first)
+                        LOGGER.log(Level.INFO, "Retrieved {0} payments from DAO findAll() method", payments.size());
                         break;
                 }
 
@@ -161,6 +166,7 @@ public class PaymentController {
                             .orElse("N/A");
                     displayData.add(new PaymentDisplayData(p, tName, rNum));
                 }
+                LOGGER.log(Level.INFO, "Enriched {0} payment records with tenant and room data", displayData.size());
                 return displayData;
             }
 
@@ -168,16 +174,27 @@ public class PaymentController {
             protected void done() {
                 try {
                     currentPaymentDisplayList = get(); // Store the loaded & enriched list
+                    LOGGER.log(Level.INFO, "Worker completed. Retrieved {0} enriched payment records", currentPaymentDisplayList.size());
 
-                    // Extract Payment objects from PaymentDisplayData using ArrayList for compatibility
+                    // Create maps for tenant names and room numbers
+                    java.util.Map<Integer, String> tenantNames = new java.util.HashMap<>();
+                    java.util.Map<Integer, String> roomNumbers = new java.util.HashMap<>();
+                    
+                    // Extract Payment objects and prepare maps
                     List<Payment> payments = new ArrayList<>();
                     for (PaymentDisplayData data : currentPaymentDisplayList) {
                         payments.add(data.payment());
+                        tenantNames.put(data.payment().getTenantId(), data.tenantName());
+                        roomNumbers.put(data.payment().getTenantId(), data.roomNumber());
                     }
 
-                    paymentListView.displayPayments(payments); // Pass only Payment objects to the view
+                    LOGGER.log(Level.INFO, "Preparing to update view with {0} payments", payments.size());
+                    // Pass all information to the view
+                    paymentListView.displayPayments(payments, tenantNames, roomNumbers);
+                    LOGGER.log(Level.INFO, "View update method called with {0} payments", payments.size());
+                    
                     filterDisplayedPayments(); // Apply search filter to newly loaded data
-                    LOGGER.info("Payment data loaded and view updated.");
+                    LOGGER.log(Level.INFO, "Payment data loaded and view updated.");
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     LOGGER.log(Level.WARNING, "Payment data loading interrupted", e);
@@ -212,15 +229,22 @@ public class PaymentController {
             // Add OCR listener here if it were implemented
         }
 
-        // Populate Tenant dropdown (needs data fetching - consider doing async if slow)
+        // Fetch tenants and rooms for populating combo boxes
         try {
             // Simple synchronous fetch for now
             List<Tenant> tenants = tenantDAO.findAll(); // Fetch active tenants ideally
+            List<Room> rooms = roomDAO.findAll();
+            
+            // Populate the combo boxes
             paymentLoggingDialog.setTenantComboBoxModel(tenants);
+            paymentLoggingDialog.setRoomComboBoxModel(rooms);
+            
+            // Setup the room-tenant linking for interactive filtering
+            paymentLoggingDialog.setupRoomTenantLinking(tenants);
+            
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Failed to load tenants for payment dialog", ex);
-            paymentLoggingDialog.displayErrorMessage("Error loading tenant list.");
-            // Optionally disable the dialog or tenant selection
+            LOGGER.log(Level.SEVERE, "Failed to load data for payment dialog", ex);
+            paymentLoggingDialog.displayErrorMessage("Error loading room and tenant data.");
         }
 
         paymentLoggingDialog.showDialog();

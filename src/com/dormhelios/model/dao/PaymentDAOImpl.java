@@ -27,6 +27,26 @@ public class PaymentDAOImpl implements PaymentDAO {
     private static final String DELETE_SQL = "DELETE FROM PAYMENTS WHERE payment_id = ?";
     private static final String SUM_AMOUNT_BY_DATE_RANGE_SQL = "SELECT SUM(amount) FROM PAYMENTS WHERE payment_date BETWEEN ? AND ?"; // New SQL
 
+    // Overdue payments SQL - Tenants who haven't paid in current month
+    private static final String FIND_OVERDUE_PAYMENTS_SQL = 
+        "SELECT t.id, t.first_name, t.last_name, r.room_number, MAX(p.payment_date) as last_payment_date " +
+        "FROM TENANTS t " +
+        "LEFT JOIN ROOMS r ON t.room_id = r.id " +
+        "LEFT JOIN PAYMENTS p ON t.id = p.tenant_id " +
+        "WHERE t.is_active = TRUE " +
+        "GROUP BY t.id, t.first_name, t.last_name, r.room_number " +
+        "HAVING MAX(p.payment_date) < ? OR MAX(p.payment_date) IS NULL " +
+        "ORDER BY last_payment_date ASC, t.last_name, t.first_name";
+    
+    // Recent payments SQL for dashboard
+    private static final String FIND_RECENT_PAYMENTS_SQL = 
+        "SELECT p.*, t.first_name, t.last_name, r.room_number " +
+        "FROM PAYMENTS p " +
+        "JOIN TENANTS t ON p.tenant_id = t.id " +
+        "LEFT JOIN ROOMS r ON t.room_id = r.id " +
+        "WHERE p.payment_date BETWEEN ? AND ? " +
+        "ORDER BY p.payment_date DESC, p.created_at DESC " +
+        "LIMIT ?";
 
     @Override
     public Optional<Payment> findById(int paymentId) {
@@ -47,12 +67,17 @@ public class PaymentDAOImpl implements PaymentDAO {
     @Override
     public List<Payment> findAll() {
         List<Payment> payments = new ArrayList<>();
+        LOGGER.log(Level.INFO, "Attempting to retrieve all payments from database...");
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(FIND_ALL_SQL);
              ResultSet rs = pstmt.executeQuery()) {
+            
+            int count = 0;
             while (rs.next()) {
                 payments.add(mapResultSetToPayment(rs));
+                count++;
             }
+            LOGGER.log(Level.INFO, "Successfully retrieved {0} payments from database", count);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error finding all payments", e);
         }
@@ -224,6 +249,103 @@ public class PaymentDAOImpl implements PaymentDAO {
         return BigDecimal.ZERO; // Return ZERO on error
     }
 
+    @Override
+    public List<Payment> findOverduePayments() {
+        List<Payment> overduePayments = new ArrayList<>();
+        LocalDate firstDayOfCurrentMonth = LocalDate.now().withDayOfMonth(1);
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(FIND_OVERDUE_PAYMENTS_SQL)) {
+            
+            pstmt.setDate(1, Date.valueOf(firstDayOfCurrentMonth));
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Payment payment = new Payment();
+                    payment.setPaymentId(-1); // Placeholder ID
+                    payment.setTenantId(rs.getInt("id"));
+                    
+                    // Create tenant and room objects to attach to payment
+                    payment.setTenant(createTenantForOverduePayment(rs));
+                    payment.setRoom(createRoomForOverduePayment(rs));
+                    
+                    Date lastPaymentDate = rs.getDate("last_payment_date");
+                    if (lastPaymentDate != null) {
+                        payment.setPaymentDate(lastPaymentDate.toLocalDate());
+                    } else {
+                        payment.setPaymentDate(LocalDate.now().minusMonths(1)); // Default to previous month
+                    }
+                    
+                    overduePayments.add(payment);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error finding overdue payments", e);
+        }
+        
+        return overduePayments;
+    }
+    
+    @Override
+    public List<Payment> findRecentPayments(int limit) {
+        List<Payment> recentPayments = new ArrayList<>();
+        // Get payments from the last 30 days by default
+        LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
+        LocalDate today = LocalDate.now();
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(FIND_RECENT_PAYMENTS_SQL)) {
+            
+            pstmt.setDate(1, Date.valueOf(thirtyDaysAgo));
+            pstmt.setDate(2, Date.valueOf(today));
+            pstmt.setInt(3, limit);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Payment payment = mapResultSetToPayment(rs);
+                    
+                    // Add tenant and room information
+                    payment.setTenant(createTenantForRecentPayment(rs));
+                    payment.setRoom(createRoomForRecentPayment(rs));
+                    
+                    recentPayments.add(payment);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error finding recent payments (limit: " + limit + ")", e);
+        }
+        
+        return recentPayments;
+    }
+    
+    // Helper methods to create tenant and room objects for dashboard display
+    private com.dormhelios.model.entity.Tenant createTenantForOverduePayment(ResultSet rs) throws SQLException {
+        com.dormhelios.model.entity.Tenant tenant = new com.dormhelios.model.entity.Tenant();
+        tenant.setTenantId(rs.getInt("id"));
+        tenant.setFirstName(rs.getString("first_name"));
+        tenant.setLastName(rs.getString("last_name"));
+        return tenant;
+    }
+    
+    private com.dormhelios.model.entity.Room createRoomForOverduePayment(ResultSet rs) throws SQLException {
+        com.dormhelios.model.entity.Room room = new com.dormhelios.model.entity.Room();
+        room.setRoomNumber(rs.getString("room_number"));
+        return room;
+    }
+    
+    private com.dormhelios.model.entity.Tenant createTenantForRecentPayment(ResultSet rs) throws SQLException {
+        com.dormhelios.model.entity.Tenant tenant = new com.dormhelios.model.entity.Tenant();
+        tenant.setTenantId(rs.getInt("tenant_id"));
+        tenant.setFirstName(rs.getString("first_name"));
+        tenant.setLastName(rs.getString("last_name"));
+        return tenant;
+    }
+    
+    private com.dormhelios.model.entity.Room createRoomForRecentPayment(ResultSet rs) throws SQLException {
+        com.dormhelios.model.entity.Room room = new com.dormhelios.model.entity.Room();
+        room.setRoomNumber(rs.getString("room_number"));
+        return room;
+    }
 
     // --- Helper Method for Mapping ---
 

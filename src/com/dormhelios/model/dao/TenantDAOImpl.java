@@ -127,7 +127,15 @@ public class TenantDAOImpl implements TenantDAO {
     @Override
     public int addTenant(Tenant tenant) {
         ResultSet generatedKeys = null;
-        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(ADD_SQL, Statement.RETURN_GENERATED_KEYS)) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean shouldCommit = false;
+        
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false); // Start transaction
+            
+            pstmt = conn.prepareStatement(ADD_SQL, Statement.RETURN_GENERATED_KEYS);
 
             pstmt.setObject(1, tenant.getUserId());
             pstmt.setObject(2, tenant.getRoomId());
@@ -145,20 +153,41 @@ public class TenantDAOImpl implements TenantDAO {
             pstmt.setString(14, tenant.getSecurityDepositStatus().name());
 
             int affectedRows = pstmt.executeUpdate();
+            int tenantId = -1;
 
             if (affectedRows > 0) {
                 generatedKeys = pstmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1);
+                    tenantId = generatedKeys.getInt(1);
+                    
+                    // If a room is assigned, decrement slots_available
+                    if (tenant.getRoomId() != null && tenant.getRoomId() > 0) {
+                        RoomDAOImpl roomDAO = new RoomDAOImpl();
+                        if (!roomDAO.decrementSlotsAvailable(tenant.getRoomId())) {
+                            LOGGER.log(Level.WARNING, "Could not decrement slots_available for room: " + tenant.getRoomId());
+                            // If we can't decrement slots (e.g., room is full), roll back transaction
+                            conn.rollback();
+                            return -1;
+                        }
+                    }
+                    
+                    shouldCommit = true;
+                    return tenantId;
                 } else {
                     LOGGER.log(Level.WARNING, "Failed to retrieve generated key for new tenant.");
-                    return -1;
                 }
-            } else {
-                return -1;
             }
+            
+            return -1;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error adding tenant: " + tenant.getFirstName() + " " + tenant.getLastName(), e);
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Error rolling back transaction", ex);
+            }
             return -1;
         } finally {
             if (generatedKeys != null) {
@@ -166,6 +195,26 @@ public class TenantDAOImpl implements TenantDAO {
                     generatedKeys.close();
                 } catch (SQLException e) {
                     LOGGER.log(Level.SEVERE, "Error closing generated keys ResultSet", e);
+                }
+            }
+            
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error closing prepared statement", e);
+                }
+            }
+            
+            if (conn != null) {
+                try {
+                    if (shouldCommit) {
+                        conn.commit();
+                    }
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error committing transaction or closing connection", e);
                 }
             }
         }
@@ -252,6 +301,30 @@ public class TenantDAOImpl implements TenantDAO {
         return tenantsWithRooms;
     }
 
+    @Override
+    public int countNewTenantsByDateRange(LocalDate startDate, LocalDate endDate) {
+        final String sql = "SELECT COUNT(*) FROM TENANTS WHERE created_at BETWEEN ? AND ? AND is_active = TRUE";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            // Add one day to endDate to make it inclusive up to the end of the day
+            java.sql.Timestamp startTs = java.sql.Timestamp.valueOf(startDate.atStartOfDay());
+            java.sql.Timestamp endTs = java.sql.Timestamp.valueOf(endDate.plusDays(1).atStartOfDay());
+            
+            pstmt.setTimestamp(1, startTs);
+            pstmt.setTimestamp(2, endTs);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error counting new tenants for date range: " + startDate + " to " + endDate, e);
+        }
+        return 0;
+    }
+
     // --- Helper methods for specific assignments ---
     private boolean updateTenantForeignKey(String sql, int tenantId, Integer foreignKeyId) {
         try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -267,7 +340,89 @@ public class TenantDAOImpl implements TenantDAO {
 
     @Override
     public boolean assignTenantToRoom(int tenantId, Integer roomId) {
-        return updateTenantForeignKey(ASSIGN_ROOM_SQL, tenantId, roomId);
+        // Get the current tenant data to check if they're already assigned to a room
+        Optional<Tenant> currentTenant = findById(tenantId);
+        if (!currentTenant.isPresent()) {
+            LOGGER.log(Level.WARNING, "Cannot assign room: Tenant not found with ID: " + tenantId);
+            return false;
+        }
+        
+        Integer oldRoomId = currentTenant.get().getRoomId();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean success = false;
+        
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false); // Start transaction
+            
+            // Update tenant's room assignment
+            pstmt = conn.prepareStatement(ASSIGN_ROOM_SQL);
+            pstmt.setObject(1, roomId); // Can be null to unassign
+            pstmt.setInt(2, tenantId);
+            
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows <= 0) {
+                conn.rollback();
+                return false;
+            }
+            
+            // Handle slots_available updates
+            RoomDAOImpl roomDAO = new RoomDAOImpl();
+            
+            // If tenant was previously assigned to a room, increment that room's slots_available
+            if (oldRoomId != null && oldRoomId > 0) {
+                if (!roomDAO.incrementSlotsAvailable(oldRoomId)) {
+                    LOGGER.log(Level.WARNING, "Failed to increment slots_available for previous room: " + oldRoomId);
+                    conn.rollback();
+                    return false;
+                }
+            }
+            
+            // If tenant is being assigned to a new room, decrement that room's slots_available
+            if (roomId != null && roomId > 0) {
+                if (!roomDAO.decrementSlotsAvailable(roomId)) {
+                    LOGGER.log(Level.WARNING, "Failed to decrement slots_available for new room: " + roomId);
+                    conn.rollback();
+                    return false;
+                }
+            }
+            
+            conn.commit();
+            success = true;
+            return true;
+            
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error assigning tenant " + tenantId + " to room " + roomId, e);
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Error rolling back transaction", ex);
+            }
+            return false;
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error closing prepared statement", e);
+                }
+            }
+            
+            if (conn != null) {
+                try {
+                    if (!success) {
+                        conn.rollback();
+                    }
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error closing connection", e);
+                }
+            }
+        }
     }
 
     @Override

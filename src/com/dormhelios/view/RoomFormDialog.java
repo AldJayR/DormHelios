@@ -33,6 +33,11 @@ public class RoomFormDialog extends javax.swing.JDialog {
 
         SpinnerNumberModel capacityModel = new SpinnerNumberModel(1, 1, 10, 1); // Initial, Min, Max, Step
         capacitySpinner.setModel(capacityModel);
+        
+        // Add a change listener to automatically set slots_available equal to capacity
+        capacitySpinner.addChangeListener(e -> {
+            // When capacity changes, we'll update slots_available in getRoomData()
+        });
     }
 
     public void setupForAdd() {
@@ -104,6 +109,23 @@ public class RoomFormDialog extends javax.swing.JDialog {
                 throw new NumberFormatException("Capacity must be positive.");
             }
             room.setCapacity(capacity);
+            
+            // Set slots_available equal to capacity for new rooms or when increasing capacity
+            if (currentRoom == null || currentRoom.getCapacity() != capacity) {
+                // For new rooms, always set slots_available = capacity
+                // For existing rooms, only update slots if capacity increased
+                if (currentRoom == null || capacity > currentRoom.getCapacity()) {
+                    room.setSlotsAvailable(capacity);
+                } else {
+                    // When decreasing capacity, we need to keep track of occupied slots
+                    int occupiedSlots = currentRoom.getCapacity() - currentRoom.getSlotsAvailable();
+                    int newSlotsAvailable = Math.max(0, capacity - occupiedSlots);
+                    room.setSlotsAvailable(newSlotsAvailable);
+                }
+            } else {
+                // If capacity hasn't changed, keep the current slots_available value
+                room.setSlotsAvailable(currentRoom.getSlotsAvailable());
+            }
         } catch (NumberFormatException e) {
             displayErrorMessage("Invalid Capacity. Please enter a positive whole number.");
             return null;

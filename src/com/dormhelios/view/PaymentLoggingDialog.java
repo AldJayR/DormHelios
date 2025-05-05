@@ -2,14 +2,17 @@ package com.dormhelios.view;
 
 import com.dormhelios.model.entity.Payment; // For return type and method enum
 import com.dormhelios.model.entity.Tenant; // For populating dropdown
+import com.dormhelios.model.entity.Room; // For room dropdown
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Vector;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -267,6 +270,71 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
     }
 
     /**
+     * Sets the model for the Room ComboBox with room data.
+     * @param rooms List of rooms to populate the dropdown
+     */
+    public void setRoomComboBoxModel(List<Room> rooms) {
+        Vector<ComboBoxItem<Integer>> model = new Vector<>();
+        model.add(new ComboBoxItem<>(null, "Select Room...")); // Add prompt item with null ID
+        
+        if (rooms != null) {
+            for (Room room : rooms) {
+                String displayText = room.getRoomNumber();
+                // Add additional room info like status or monthly rate if needed
+                if (room.getStatus() != null) {
+                    displayText += " (" + room.getStatus().name() + ")";
+                }
+                if (room.getMonthlyRate() != null) {
+                    displayText += " - ₱" + room.getMonthlyRate();
+                }
+                model.add(new ComboBoxItem<>(room.getRoomId(), displayText));
+            }
+        }
+        
+        roomComboBox.setModel(new DefaultComboBoxModel<>(model));
+    }
+
+    /**
+     * Gets the selected room ID from the room combo box.
+     * @return The selected room ID, or null if no room is selected
+     */
+    public Integer getSelectedRoomId() {
+        ComboBoxItem<Integer> selectedRoomItem = (ComboBoxItem<Integer>) roomComboBox.getSelectedItem();
+        return selectedRoomItem != null ? selectedRoomItem.getId() : null;
+    }
+
+    /**
+     * Selects a room in the combo box by its ID.
+     * @param roomId The ID of the room to select
+     */
+    public void selectRoomById(Integer roomId) {
+        if (roomId == null) {
+            roomComboBox.setSelectedIndex(0);
+            return;
+        }
+        
+        for (int i = 0; i < roomComboBox.getItemCount(); i++) {
+            Object item = roomComboBox.getItemAt(i);
+            if (item instanceof ComboBoxItem) {
+                ComboBoxItem<Integer> comboItem = (ComboBoxItem<Integer>) item;
+                if (roomId.equals(comboItem.getId())) {
+                    roomComboBox.setSelectedIndex(i);
+                    return;
+                }
+            }
+        }
+        roomComboBox.setSelectedIndex(0);
+    }
+
+    /**
+     * Adds a listener to the room combo box.
+     * @param listener ActionListener to be added
+     */
+    public void addRoomComboBoxListener(ActionListener listener) {
+        roomComboBox.addActionListener(listener);
+    }
+
+    /**
      * Sets up the dialog for adding a new payment.
      */
     public void setupForAdd() {
@@ -354,6 +422,95 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
     }
 
     /**
+     * Adds a listener to sync the room and tenant selection.
+     * When a room is selected, this will filter the tenant combo box to show only
+     * tenants assigned to that room.
+     * 
+     * @param tenants List of all tenants to filter
+     */
+    public void setupRoomTenantLinking(List<Tenant> tenants) {
+        // Store all tenants for filtering
+        final List<Tenant> allTenants = new ArrayList<>(tenants);
+        
+        // Flag to prevent recursive triggering of listeners
+        final boolean[] isUpdatingSelection = {false};
+        
+        // Add listener to room combo box
+        roomComboBox.addActionListener(e -> {
+            // Skip if we're already in the middle of updating selections
+            if (isUpdatingSelection[0]) {
+                return;
+            }
+            
+            isUpdatingSelection[0] = true;
+            try {
+                // Get selected room ID
+                Integer selectedRoomId = getSelectedRoomId();
+                
+                // Remember current tenant selection
+                ComboBoxItem<Integer> currentTenantSelection = null;
+                if (tenantComboBox.getSelectedItem() instanceof ComboBoxItem) {
+                    currentTenantSelection = (ComboBoxItem<Integer>) tenantComboBox.getSelectedItem();
+                }
+                
+                if (selectedRoomId == null) {
+                    // If no room selected, show all tenants
+                    setTenantComboBoxModel(allTenants);
+                } else {
+                    // Filter tenants by selected room
+                    List<Tenant> filteredTenants = allTenants.stream()
+                        .filter(tenant -> selectedRoomId.equals(tenant.getRoomId()))
+                        .collect(java.util.stream.Collectors.toList());
+                    
+                    // Set filtered model
+                    setTenantComboBoxModel(filteredTenants);
+                }
+                
+                // Try to restore previous tenant selection if it's in the new model
+                if (currentTenantSelection != null && currentTenantSelection.getId() != null) {
+                    selectTenantById(currentTenantSelection.getId());
+                }
+            } finally {
+                isUpdatingSelection[0] = false;
+            }
+        });
+        
+        // Add listener to tenant combo box
+        tenantComboBox.addActionListener(e -> {
+            // Skip if we're already in the middle of updating selections
+            if (isUpdatingSelection[0]) {
+                return;
+            }
+            
+            isUpdatingSelection[0] = true;
+            try {
+                Object selected = tenantComboBox.getSelectedItem();
+                if (selected instanceof ComboBoxItem) {
+                    @SuppressWarnings("unchecked")
+                    ComboBoxItem<Integer> selectedTenantItem = (ComboBoxItem<Integer>) selected;
+                    
+                    Integer tenantId = selectedTenantItem.getId();
+                    if (tenantId != null) {
+                        // Find the tenant by ID
+                        Optional<Tenant> selectedTenant = allTenants.stream()
+                            .filter(t -> tenantId.equals(t.getTenantId()))
+                            .findFirst();
+                        
+                        // If tenant has a room, select it in the room combo box
+                        selectedTenant.ifPresent(tenant -> {
+                            if (tenant.getRoomId() != null) {
+                                selectRoomById(tenant.getRoomId());
+                            }
+                        });
+                    }
+                }
+            } finally {
+                isUpdatingSelection[0] = false;
+            }
+        });
+    }
+
+    /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
@@ -368,7 +525,7 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
+        roomComboBox = new javax.swing.JComboBox();
         jPanel3 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
@@ -401,7 +558,7 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
 
         jLabel3.setText("Select Room");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        roomComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -412,7 +569,7 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel2)
                     .addComponent(jLabel3)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(roomComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 403, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -423,7 +580,7 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(roomComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(18, Short.MAX_VALUE))
         );
 
@@ -517,8 +674,8 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
                         .addGap(6, 6, 6)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel11)
-                            .addComponent(paymentMethodComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(33, 33, 33)
+                            .addComponent(paymentMethodComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(35, 35, 35)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel10)
                             .addComponent(receiptReferenceField, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -666,7 +823,6 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
     private javax.swing.JComboBox coveredMonthComboBox;
-    private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
@@ -687,6 +843,7 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
     private javax.swing.JLabel paymentHeaderLabel;
     private javax.swing.JComboBox paymentMethodComboBox;
     private javax.swing.JFormattedTextField receiptReferenceField;
+    private javax.swing.JComboBox roomComboBox;
     private javax.swing.JButton saveButton;
     private javax.swing.JComboBox tenantComboBox;
     // End of variables declaration//GEN-END:variables

@@ -20,11 +20,14 @@ public class RoomDAOImpl implements RoomDAO {
     private static final String FIND_BY_ROOM_NUMBER_SQL = "SELECT * FROM ROOMS WHERE room_number = ?";
     private static final String FIND_ALL_SQL = "SELECT * FROM ROOMS WHERE is_active = 1 ORDER BY room_number";
     private static final String FIND_BY_STATUS_SQL = "SELECT * FROM ROOMS WHERE status = ? AND is_active = 1 ORDER BY room_number";
-    private static final String ADD_SQL = "INSERT INTO ROOMS (room_number, capacity, monthly_rate, status, description, created_at, updated_at, is_active) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), 1)";
-    private static final String UPDATE_SQL = "UPDATE ROOMS SET room_number = ?, capacity = ?, monthly_rate = ?, status = ?, description = ?, updated_at = NOW() WHERE id = ?";
+    private static final String ADD_SQL = "INSERT INTO ROOMS (room_number, capacity, slots_available, monthly_rate, status, description, created_at, updated_at, is_active) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), 1)";
+    private static final String UPDATE_SQL = "UPDATE ROOMS SET room_number = ?, capacity = ?, slots_available = ?, monthly_rate = ?, status = ?, description = ?, updated_at = NOW() WHERE id = ?";
     private static final String DELETE_SQL = "DELETE FROM ROOMS WHERE id = ?";
     private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM ROOMS WHERE is_active = 1"; // Updated SQL
     private static final String COUNT_BY_STATUS_SQL = "SELECT COUNT(*) FROM ROOMS WHERE status = ? AND is_active = 1"; // Updated SQL
+    private static final String UPDATE_SLOTS_AVAILABLE_SQL = "UPDATE ROOMS SET slots_available = ?, updated_at = NOW() WHERE id = ?";
+    private static final String DECREMENT_SLOTS_AVAILABLE_SQL = "UPDATE ROOMS SET slots_available = slots_available - 1, updated_at = NOW() WHERE id = ? AND slots_available > 0";
+    private static final String INCREMENT_SLOTS_AVAILABLE_SQL = "UPDATE ROOMS SET slots_available = slots_available + 1, updated_at = NOW() WHERE id = ? AND slots_available < capacity";
 
     @Override
     public Optional<Room> findById(int roomId) {
@@ -106,9 +109,10 @@ public class RoomDAOImpl implements RoomDAO {
             // Set parameters from the Room object
             pstmt.setString(1, room.getRoomNumber());
             pstmt.setInt(2, room.getCapacity());
-            pstmt.setBigDecimal(3, room.getMonthlyRate());
-            pstmt.setString(4, room.getStatus().name()); // Store Enum name
-            pstmt.setString(5, room.getDescription());
+            pstmt.setInt(3, room.getSlotsAvailable());
+            pstmt.setBigDecimal(4, room.getMonthlyRate());
+            pstmt.setString(5, room.getStatus().name()); // Store Enum name
+            pstmt.setString(6, room.getDescription());
 
             int affectedRows = pstmt.executeUpdate();
 
@@ -156,11 +160,12 @@ public class RoomDAOImpl implements RoomDAO {
             // Set parameters for the update
             pstmt.setString(1, room.getRoomNumber());
             pstmt.setInt(2, room.getCapacity());
-            pstmt.setBigDecimal(3, room.getMonthlyRate());
-            pstmt.setString(4, room.getStatus().name());
-            pstmt.setString(5, room.getDescription());
+            pstmt.setInt(3, room.getSlotsAvailable());
+            pstmt.setBigDecimal(4, room.getMonthlyRate());
+            pstmt.setString(5, room.getStatus().name());
+            pstmt.setString(6, room.getDescription());
             // Set the ID for the WHERE clause
-            pstmt.setInt(6, room.getRoomId());
+            pstmt.setInt(7, room.getRoomId());
 
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0; // Return true if updated
@@ -258,6 +263,68 @@ public class RoomDAOImpl implements RoomDAO {
             return false;
         }
     }
+    
+    @Override
+    public boolean decrementSlotsAvailable(int roomId) {
+        final String sql = "UPDATE ROOMS SET slots_available = slots_available - 1, updated_at = NOW() " +
+                          "WHERE id = ? AND slots_available > 0";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, roomId);
+            int affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                // No rows affected could mean either:
+                // 1. Room doesn't exist
+                // 2. Room already has 0 slots available
+                LOGGER.log(Level.WARNING, "Failed to decrement slots_available for roomId: " + roomId + 
+                                         ". Room may not exist or have no available slots.");
+                return false;
+            }
+            
+            return true;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error decrementing slots_available for room: " + roomId, e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean incrementSlotsAvailable(int roomId) {
+        Optional<Room> roomOptional = findById(roomId);
+        if (!roomOptional.isPresent()) {
+            LOGGER.log(Level.WARNING, "Cannot increment slots_available: Room not found with ID: " + roomId);
+            return false;
+        }
+        
+        Room room = roomOptional.get();
+        if (room.getSlotsAvailable() >= room.getCapacity()) {
+            LOGGER.log(Level.WARNING, "Cannot increment slots_available: Room already at max capacity: " + roomId);
+            return false;
+        }
+        
+        final String sql = "UPDATE ROOMS SET slots_available = slots_available + 1, updated_at = NOW() " +
+                          "WHERE id = ? AND slots_available < capacity";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, roomId);
+            int affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                LOGGER.log(Level.WARNING, "Failed to increment slots_available for roomId: " + roomId);
+                return false;
+            }
+            
+            return true;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error incrementing slots_available for room: " + roomId, e);
+            return false;
+        }
+    }
 
     // --- Helper Method for Mapping ---
     /**
@@ -272,6 +339,7 @@ public class RoomDAOImpl implements RoomDAO {
         room.setRoomId(rs.getInt("id"));
         room.setRoomNumber(rs.getString("room_number"));
         room.setCapacity(rs.getInt("capacity"));
+        room.setSlotsAvailable(rs.getInt("slots_available"));
         room.setMonthlyRate(rs.getBigDecimal("monthly_rate"));
 
         // Handle Enum for status, providing a default if the DB value is invalid
