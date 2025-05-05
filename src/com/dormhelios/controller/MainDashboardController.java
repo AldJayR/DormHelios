@@ -177,6 +177,11 @@ public class MainDashboardController {
             mainView.addContentPanel(dashboardPanel, MainDashboardView.DASHBOARD_PANEL);
             attachDashboardActionListeners(); // Re-attach if newly created
         }
+        // Enable scrolling for dashboard panel
+        mainView.getJScrollPane().setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        // Reset scroll position to top
+        SwingUtilities.invokeLater(() -> mainView.getJScrollPane().getVerticalScrollBar().setValue(0));
+        
         mainView.displayPanel(MainDashboardView.DASHBOARD_PANEL, mainView.getDashboardButton());
         loadDashboardData(); // Refresh data when navigating back
     }
@@ -204,6 +209,21 @@ public class MainDashboardController {
             mainView.addContentPanel(tenantListView, MainDashboardView.TENANTS_PANEL);
             LOGGER.info("Tenant List Panel created and wired to TenantController.");
         }
+        // Disable scrolling for tenant list view since it has its own scrolling
+        mainView.getJScrollPane().setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        // Reset scroll position to top
+        SwingUtilities.invokeLater(() -> {
+            // Reset main scroll pane
+            mainView.getJScrollPane().getVerticalScrollBar().setValue(0);
+            // Also reset tenant list's table scroll pane if it exists
+            if (tenantListView != null && tenantListView.getTenantTable() != null && 
+                tenantListView.getTenantTable().getParent() != null && 
+                tenantListView.getTenantTable().getParent().getParent() instanceof JScrollPane) {
+                JScrollPane scrollPane = (JScrollPane) tenantListView.getTenantTable().getParent().getParent();
+                scrollPane.getVerticalScrollBar().setValue(0);
+            }
+        });
+        
         mainView.displayPanel(MainDashboardView.TENANTS_PANEL, mainView.getTenantsButton());
     }
 
@@ -215,6 +235,21 @@ public class MainDashboardController {
             mainView.addContentPanel(roomListView, MainDashboardView.ROOMS_PANEL);
              LOGGER.info("Room List Panel created (Controller/Data loading needed).");
         }
+        // Enable scrolling for room list panel
+        mainView.getJScrollPane().setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        // Reset scroll position to top
+        SwingUtilities.invokeLater(() -> {
+            // Reset main scroll pane
+            mainView.getJScrollPane().getVerticalScrollBar().setValue(0);
+            // Reset room list's internal scroll pane
+            if (roomListView != null && roomListView.getRoomTable() != null && 
+                roomListView.getRoomTable().getParent() != null && 
+                roomListView.getRoomTable().getParent().getParent() instanceof JScrollPane) {
+                JScrollPane scrollPane = (JScrollPane) roomListView.getRoomTable().getParent().getParent();
+                scrollPane.getVerticalScrollBar().setValue(0);
+            }
+        });
+        
         mainView.displayPanel(MainDashboardView.ROOMS_PANEL, mainView.getDormsButton());
     }
 
@@ -237,6 +272,21 @@ public class MainDashboardController {
             // Load payment data through the controller
             paymentController.loadPaymentData();
         }
+        // Disable scrolling for payment list view since it has its own scrolling
+        mainView.getJScrollPane().setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        // Reset scroll position to top
+        SwingUtilities.invokeLater(() -> {
+            // Reset main scroll pane
+            mainView.getJScrollPane().getVerticalScrollBar().setValue(0);
+            // Also reset payment list's table scroll pane if it exists
+            if (paymentListView != null && paymentListView.getPaymentTable() != null && 
+                paymentListView.getPaymentTable().getParent() != null && 
+                paymentListView.getPaymentTable().getParent().getParent() instanceof JScrollPane) {
+                JScrollPane scrollPane = (JScrollPane) paymentListView.getPaymentTable().getParent().getParent();
+                scrollPane.getVerticalScrollBar().setValue(0);
+            }
+        });
+        
         mainView.displayPanel(MainDashboardView.PAYMENTS_PANEL, mainView.getPaymentsButton());
     }
 

@@ -10,6 +10,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.print.PrinterException; // For printing
@@ -81,21 +83,21 @@ public class PaymentController {
         paymentListView.addEditButtonListener(e -> editSelectedPayment());
         paymentListView.addDeleteButtonListener(e -> deleteSelectedPayment());
 
-        // Listener for live search
+        // Improved search field listener implementation
         paymentListView.addSearchFieldListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                filterDisplayedPayments();
+                SwingUtilities.invokeLater(() -> filterDisplayedPayments());
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                filterDisplayedPayments();
+                SwingUtilities.invokeLater(() -> filterDisplayedPayments());
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                filterDisplayedPayments();
+                SwingUtilities.invokeLater(() -> filterDisplayedPayments());
             }
         });
 
@@ -114,6 +116,14 @@ public class PaymentController {
                     LOGGER.info("Receipt 'View' clicked at view row: " + row);
                     viewPaymentReceiptFromTable(row); // Pass view row index
                 }
+            }
+        });
+
+        // Fallback: listen to key releases directly on the search field
+        paymentListView.getSearchField().addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                SwingUtilities.invokeLater(() -> filterDisplayedPayments());
             }
         });
     }
@@ -210,11 +220,11 @@ public class PaymentController {
     }
 
     /**
-     * Applies the text search filter to the currently displayed data in the
-     * table.
+     * Applies the text search filter and combo box filter to the currently displayed data in the
+     * table using the more comprehensive filterTable method.
      */
     private void filterDisplayedPayments() {
-        paymentListView.filterTableBySearch();
+        paymentListView.filterTable();
     }
 
     /**
@@ -427,7 +437,7 @@ public class PaymentController {
             receiptDialog = new ReceiptDialog(mainView, true);
             receiptDialog.addDoneButtonListener(e -> receiptDialog.closeDialog());
             receiptDialog.addPrintButtonListener(e -> printReceipt());
-            // Add download listener if implemented
+            receiptDialog.addDownloadButtonListener(e -> downloadReceipt());
         }
         receiptDialog.displayReceiptDetails(payment, tenant, room); // Use simplified method
         receiptDialog.showDialog();
@@ -505,6 +515,19 @@ public class PaymentController {
         } else {
             LOGGER.info("Print job cancelled by user.");
         }
+    }
+
+    /**
+     * Handles downloading the receipt as a PDF file.
+     */
+    private void downloadReceipt() {
+        if (receiptDialog == null || !receiptDialog.isShowing()) {
+            LOGGER.warning("Attempted to download receipt, but dialog is not available.");
+            return;
+        }
+        
+        // Call the saveReceiptAsPDF method implemented in ReceiptDialog
+        receiptDialog.saveReceiptAsPDF();
     }
 
     // --- Helper for Handling SwingWorker Exceptions ---

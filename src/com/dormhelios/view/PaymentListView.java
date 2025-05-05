@@ -1,20 +1,30 @@
 package com.dormhelios.view;
 
 import com.dormhelios.model.entity.Payment;
+import com.dormhelios.util.TableRenderers;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.RowFilter;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 public class PaymentListView extends javax.swing.JPanel {
@@ -27,6 +37,9 @@ public class PaymentListView extends javax.swing.JPanel {
     public PaymentListView() {
         initComponents();
         setupTable();
+        setupSearchFieldPlaceholder();
+        setupTableAppearance();
+        applyCustomStyling();
     }
 
     private void setupTable() {
@@ -43,9 +56,6 @@ public class PaymentListView extends javax.swing.JPanel {
         paymentTable.setAutoCreateRowSorter(true); // Enable basic column sorting
         sorter = new TableRowSorter<>(tableModel);
         paymentTable.setRowSorter(sorter);
-
-        // Set up search field placeholder text behavior
-        setupSearchFieldPlaceholder();
 
         // Hide the ID column
         paymentTable.getColumnModel().getColumn(0).setMinWidth(0);
@@ -65,6 +75,68 @@ public class PaymentListView extends javax.swing.JPanel {
         javax.swing.table.DefaultTableCellRenderer rightRenderer = new javax.swing.table.DefaultTableCellRenderer();
         rightRenderer.setHorizontalAlignment(javax.swing.JLabel.RIGHT);
         paymentTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
+    }
+    
+    /**
+     * Configures the payment table with appropriate renderers and column sizes.
+     */
+    private void setupTableAppearance() {
+        // Set column widths
+        TableColumnModel columnModel = paymentTable.getColumnModel();
+        
+        // Apply appropriate renderers for each column
+        // Payment ID - Left-aligned default
+        columnModel.getColumn(0).setPreferredWidth(80);
+        columnModel.getColumn(0).setCellRenderer(new TableRenderers.BaseRenderer());
+        
+        // Tenant Name - Left-aligned default
+        columnModel.getColumn(1).setPreferredWidth(180);
+        columnModel.getColumn(1).setCellRenderer(new TableRenderers.BaseRenderer());
+        
+        // Room Number - Left-aligned default
+        columnModel.getColumn(2).setPreferredWidth(120);
+        columnModel.getColumn(2).setCellRenderer(new TableRenderers.BaseRenderer());
+        
+        // Amount - Right-aligned currency
+        columnModel.getColumn(3).setPreferredWidth(120);
+        columnModel.getColumn(3).setCellRenderer(new TableRenderers.CurrencyRenderer());
+        
+        // Payment Date - Formatted date
+        columnModel.getColumn(4).setPreferredWidth(120);
+        columnModel.getColumn(4).setCellRenderer(new TableRenderers.DateRenderer());
+        
+        // Period Covered - Formatted text
+        columnModel.getColumn(5).setPreferredWidth(140);
+        columnModel.getColumn(5).setCellRenderer(new TableRenderers.BaseRenderer());
+        
+        // Payment Method - Status-styled renderer
+        columnModel.getColumn(6).setPreferredWidth(120);
+        columnModel.getColumn(6).setCellRenderer(new TableRenderers.StatusRenderer());
+        
+        // Actions column - if present
+        if (columnModel.getColumnCount() > 7) {
+            columnModel.getColumn(7).setPreferredWidth(100);
+            // We'll set cell editor elsewhere as it requires action handling
+        }
+        
+        // Adjust row height for better readability
+        paymentTable.setRowHeight(32);
+        
+        // Improve table header appearance
+        paymentTable.getTableHeader().setFont(paymentTable.getTableHeader().getFont().deriveFont(java.awt.Font.BOLD));
+        paymentTable.getTableHeader().setOpaque(false);
+        
+        // Make the table selection more visible
+        paymentTable.setSelectionBackground(new java.awt.Color(30, 115, 190, 80));
+        paymentTable.setSelectionForeground(java.awt.Color.BLACK);
+        
+        // Remove grid lines for a cleaner look
+        paymentTable.setShowVerticalLines(false);
+        paymentTable.setShowHorizontalLines(true);
+        paymentTable.setGridColor(new java.awt.Color(230, 230, 230));
+        
+        // Enable row sorting
+        paymentTable.setAutoCreateRowSorter(true);
     }
     
     /**
@@ -198,33 +270,118 @@ public class PaymentListView extends javax.swing.JPanel {
         return searchField.getText().trim();
     }
 
+    /**
+     * Filters the table based on the text in the search field.
+     * This method is called by the controller when the search field text changes.
+     */
     public void filterTableBySearch() {
         String searchText = getSearchText();
         
         // Don't filter if the search field contains the placeholder text "Search"
         if (searchText.equals("Search")) {
             sorter.setRowFilter(null); // Clear any existing filter
-            System.out.println("Search text is placeholder 'Search', no filtering applied");
             return;
         }
         
+        // If empty after trim, clear filter
         if (searchText.isEmpty()) {
             sorter.setRowFilter(null); // Clear any existing filter
-            System.out.println("Search text is empty, no filtering applied");
             return;
         }
         
-        System.out.println("Filtering table with search text: '" + searchText + "'");
-        
         try {
-            // Filter based on Tenant Name (col 2) or Room No (col 3) or Method (col 6) - case insensitive
-            RowFilter<DefaultTableModel, Object> rf = RowFilter.regexFilter("(?i)" + searchText, 2, 3, 6);
+            // Filter based on multiple columns:
+            // Date (col 1), Tenant Name (col 2), Room No (col 3), Amount (col 4), Method (col 6)
+            RowFilter<DefaultTableModel, Object> rf = RowFilter.regexFilter("(?i)" + searchText, 1, 2, 3, 4, 6);
             sorter.setRowFilter(rf);
-            System.out.println("Filter applied, visible rows now: " + paymentTable.getRowCount());
         } catch (java.util.regex.PatternSyntaxException e) {
-            System.out.println("Invalid regex pattern in search: " + e.getMessage());
-            return; // Ignore invalid regex
+            // If the regex pattern is invalid, don't apply any filter
+            sorter.setRowFilter(null);
+            System.err.println("Invalid search regex: " + e.getMessage());
         }
+    }
+
+    /**
+     * Filters the table based on both the search text and combo box selection.
+     * This provides a more comprehensive filtering solution than filterTableBySearch().
+     */
+    public void filterTable() {
+        String searchText = getSearchText();
+        String filterSelection = getSelectedFilter();
+        
+        // Don't filter if the search field contains the placeholder text "Search"
+        if (searchText.equals("Search")) {
+            searchText = "";
+        }
+        
+        final String finalSearchText = searchText;
+        final String finalFilterSelection = filterSelection;
+        
+        // Create a custom row filter that works correctly with renderers
+        RowFilter<DefaultTableModel, Object> compositeFilter = new RowFilter<DefaultTableModel, Object>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Object> entry) {
+                // First check if we should include based on search text
+                if (!finalSearchText.isEmpty()) {
+                    boolean matches = false;
+                    // Check tenant name (column 2), room number (column 3), amount (column 4), method (column 6)
+                    String tenant = entry.getStringValue(2).toLowerCase();
+                    String roomNo = entry.getStringValue(3).toLowerCase();
+                    String amount = entry.getStringValue(4).toLowerCase();
+                    String method = entry.getStringValue(6).toLowerCase();
+                    
+                    if (tenant.contains(finalSearchText.toLowerCase()) || 
+                        roomNo.contains(finalSearchText.toLowerCase()) ||
+                        amount.contains(finalSearchText.toLowerCase()) ||
+                        method.contains(finalSearchText.toLowerCase())) {
+                        matches = true;
+                    }
+                    
+                    if (!matches) {
+                        return false; // No need to check filter if search doesn't match
+                    }
+                }
+                
+                // Then check if we should include based on filter combo box
+                if (filterSelection != null && !filterSelection.equals("All Payments") && !filterSelection.trim().isEmpty()) {
+                    if (filterSelection.equals("Most Recent First")) {
+                        // Date is in column 1
+                        String dateStr = entry.getStringValue(1);
+                        if (dateStr.equals("N/A")) {
+                            return false;
+                        }
+                        try {
+                            LocalDate paymentDate = LocalDate.parse(dateStr);
+                            LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
+                            return paymentDate.isAfter(thirtyDaysAgo);
+                        } catch (Exception e) {
+                            // If date can't be parsed, include the row
+                            return true;
+                        }
+                    } else if (filterSelection.equals("Oldest First")) {
+                        // Date is in column 1
+                        String dateStr = entry.getStringValue(1);
+                        if (dateStr.equals("N/A")) {
+                            return false;
+                        }
+                        try {
+                            LocalDate paymentDate = LocalDate.parse(dateStr);
+                            LocalDate ninetyDaysAgo = LocalDate.now().minusDays(90);
+                            return paymentDate.isBefore(ninetyDaysAgo);
+                        } catch (Exception e) {
+                            // If date can't be parsed, include the row
+                            return true;
+                        }
+                    }
+                }
+                
+                // If we reach here, include the row
+                return true;
+            }
+        };
+        
+        // Apply our custom filter
+        sorter.setRowFilter(compositeFilter);
     }
 
     // --- Methods to Add Listeners ---
@@ -280,6 +437,127 @@ public class PaymentListView extends javax.swing.JPanel {
      */
     public javax.swing.JButton getNewPaymentButton() {
         return newPaymentButton;
+    }
+
+    /**
+     * Exposes the searchField for external access.
+     * 
+     * @return The searchField component
+     */
+    public javax.swing.JTextField getSearchField() {
+        return searchField;
+    }
+
+    /**
+     * Applies Tailwind-inspired styling to the PaymentListView components.
+     * Call this method after initComponents() in the constructor.
+     */
+    private void applyCustomStyling() {
+        // Tailwind color palette
+        Color primary = new Color(59, 130, 246);     // blue-500
+        Color primaryLight = new Color(96, 165, 250); // blue-400
+        Color success = new Color(34, 197, 94);      // green-500 
+        Color danger = new Color(239, 68, 68);       // red-500
+        Color warning = new Color(245, 158, 11);     // amber-500
+        Color emerald = new Color(16, 185, 129);     // emerald-500
+        Color bgLight = new Color(243, 244, 246);    // gray-100
+        Color slate100 = new Color(241, 245, 249);   // slate-100
+        Color slate200 = new Color(226, 232, 240);   // slate-200
+        Color slate700 = new Color(51, 65, 85);      // slate-700
+        Color slate800 = new Color(30, 41, 59);      // slate-800
+        
+        // Background styling
+        this.setBackground(bgLight);
+        
+        // Style title 
+        jLabel1.setForeground(slate800);
+        
+        // Style the Add Payment button
+        newPaymentButton.setBackground(emerald);
+        newPaymentButton.setForeground(Color.WHITE);
+        newPaymentButton.setFont(newPaymentButton.getFont().deriveFont(Font.BOLD));
+        newPaymentButton.setBorderPainted(false);
+        newPaymentButton.setFocusPainted(false);
+        newPaymentButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Style action buttons with different colors
+        if (viewButton != null) {
+            viewButton.setBackground(primary);
+            viewButton.setForeground(Color.WHITE);
+            viewButton.setFont(viewButton.getFont().deriveFont(Font.BOLD));
+            viewButton.setBorderPainted(false);
+            viewButton.setFocusPainted(false);
+            viewButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+        
+        if (editButton != null) {
+            editButton.setBackground(success);
+            editButton.setForeground(Color.WHITE);
+            editButton.setFont(editButton.getFont().deriveFont(Font.BOLD));
+            editButton.setBorderPainted(false);
+            editButton.setFocusPainted(false);
+            editButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+        
+        if (deleteButton != null) {
+            deleteButton.setBackground(danger);
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFont(deleteButton.getFont().deriveFont(Font.BOLD));
+            deleteButton.setBorderPainted(false);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+        
+        // Style the search field
+        searchField.setBackground(slate100);
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(slate200, 1, true),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        
+        // Style filter combo box
+        filterComboBox.setBackground(Color.WHITE);
+        filterComboBox.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(slate200, 1, true),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
+        
+        // Style the table
+        paymentTable.setRowHeight(40);
+        paymentTable.setIntercellSpacing(new Dimension(10, 0));
+        paymentTable.setShowGrid(false);
+        paymentTable.setShowHorizontalLines(true);
+        paymentTable.setGridColor(slate200);
+        
+        // Table header styling
+        paymentTable.getTableHeader().setBackground(bgLight);
+        paymentTable.getTableHeader().setForeground(slate700);
+        paymentTable.getTableHeader().setFont(paymentTable.getTableHeader().getFont().deriveFont(Font.BOLD));
+        paymentTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, slate200));
+        
+        // Table selection styling
+        paymentTable.setSelectionBackground(new Color(primaryLight.getRed(), primaryLight.getGreen(), primaryLight.getBlue(), 100));
+        paymentTable.setSelectionForeground(slate800);
+        
+        // Money column styling (special color for the amount)
+        if (paymentTable.getColumnCount() > 4) { // Assuming amount is column 4
+            TableColumn amountColumn = paymentTable.getColumnModel().getColumn(4);
+            amountColumn.setCellRenderer(new DefaultTableCellRenderer() {
+                {
+                    setHorizontalAlignment(SwingConstants.RIGHT);
+                }
+                
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                    if (!isSelected) {
+                        c.setForeground(emerald);
+                        c.setFont(c.getFont().deriveFont(Font.BOLD));
+                    }
+                    return c;
+                }
+            });
+        }
     }
 
     /**

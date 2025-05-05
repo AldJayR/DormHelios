@@ -61,22 +61,28 @@ public class RoomController implements PropertyChangeListener {
         roomListView.addSearchFieldListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                roomListView.filterTable();
+                // Use invokeLater to ensure filtering happens on the EDT
+                SwingUtilities.invokeLater(() -> roomListView.filterTable());
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                roomListView.filterTable();
+                // Use invokeLater to ensure filtering happens on the EDT
+                SwingUtilities.invokeLater(() -> roomListView.filterTable());
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                roomListView.filterTable();
+                // Use invokeLater to ensure filtering happens on the EDT
+                SwingUtilities.invokeLater(() -> roomListView.filterTable());
             }
         });
 
         // Listener for filter changes
-        roomListView.addFilterComboBoxListener(e -> roomListView.filterTable());
+        roomListView.addFilterComboBoxListener(e -> {
+            // Use invokeLater for consistency, though less critical for ActionListener
+            SwingUtilities.invokeLater(() -> roomListView.filterTable());
+        });
     }
 
     /**
@@ -99,6 +105,8 @@ public class RoomController implements PropertyChangeListener {
                     // Update UI on the EDT
                     roomListView.displayRooms(rooms);
                     updateSummaryCards(rooms); // Update counts based on fetched data
+                    // Apply current filters/search after loading new data
+                    roomListView.filterTable();
                     LOGGER.info("Room data loaded and view updated.");
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();

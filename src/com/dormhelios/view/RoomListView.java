@@ -13,6 +13,7 @@ import javax.swing.RowFilter;
 import javax.swing.event.DocumentListener; // For live search
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
+import javax.swing.table.TableColumnModel;
 
 public class RoomListView extends javax.swing.JPanel {
 
@@ -27,6 +28,10 @@ public class RoomListView extends javax.swing.JPanel {
     public RoomListView() {
         initComponents();
         setupTable();
+        setupSearchFieldPlaceholder();
+        setupTableAppearance(); // Apply table appearance settings
+        applyCustomStyling(); // Apply Tailwind-inspired styling
+        setupScrollablePanel(); // Ensure correct scrolling behavior
     }
 
     private void setupTable() {
@@ -47,11 +52,8 @@ public class RoomListView extends javax.swing.JPanel {
 
         // Set up filter combo box with improved options
         filterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(
-            new String[] {"All Rooms", "Vacant", "Occupied", "Maintenance"}
+                new String[]{"All Rooms", "Vacant", "Occupied", "Maintenance"}
         ));
-        
-        // Set up search field placeholder text behavior
-        setupSearchFieldPlaceholder();
 
         // Hide the ID column visually but keep it in the model for retrieval
         roomTable.getColumnModel().getColumn(0).setMinWidth(0);
@@ -65,11 +67,79 @@ public class RoomListView extends javax.swing.JPanel {
         roomTable.getColumnModel().getColumn(4).setPreferredWidth(120); // Rate
         roomTable.getColumnModel().getColumn(5).setPreferredWidth(100); // Status
     }
-    
+
     /**
-     * Sets up the search field with placeholder text behavior.
-     * The placeholder text "Search" will disappear when the field gains focus
-     * and reappear when the field loses focus if it's empty.
+     * Configures the room table with appropriate renderers and column sizes for
+     * a professional look.
+     */
+    private void setupTableAppearance() {
+        // Set column widths and renderers
+        TableColumnModel columnModel = roomTable.getColumnModel();
+
+        // Get the actual number of columns in the table to prevent ArrayIndexOutOfBoundsException
+        int columnCount = columnModel.getColumnCount();
+
+        // Apply appropriate renderers for each column - only if they exist
+        // ID column - Base renderer (hidden column)
+        if (columnCount > 0) {
+            columnModel.getColumn(0).setPreferredWidth(40);
+            columnModel.getColumn(0).setCellRenderer(new com.dormhelios.util.TableRenderers.BaseRenderer());
+        }
+
+        // Room Number column - Base renderer
+        if (columnCount > 1) {
+            columnModel.getColumn(1).setPreferredWidth(120);
+            columnModel.getColumn(1).setCellRenderer(new com.dormhelios.util.TableRenderers.BaseRenderer());
+        }
+
+        // Capacity column - Base renderer
+        if (columnCount > 2) {
+            columnModel.getColumn(2).setPreferredWidth(100);
+            columnModel.getColumn(2).setCellRenderer(new com.dormhelios.util.TableRenderers.BaseRenderer());
+        }
+
+        // Available Slots column - Base renderer
+        if (columnCount > 3) {
+            columnModel.getColumn(3).setPreferredWidth(120);
+            columnModel.getColumn(3).setCellRenderer(new com.dormhelios.util.TableRenderers.BaseRenderer());
+        }
+
+        // Monthly Rate column - Currency renderer
+        if (columnCount > 4) {
+            columnModel.getColumn(4).setPreferredWidth(140);
+            columnModel.getColumn(4).setCellRenderer(new com.dormhelios.util.TableRenderers.CurrencyRenderer());
+        }
+
+        // Status column - Status renderer
+        if (columnCount > 5) {
+            columnModel.getColumn(5).setPreferredWidth(100);
+            columnModel.getColumn(5).setCellRenderer(new com.dormhelios.util.TableRenderers.StatusRenderer());
+        }
+
+        // Adjust row height for better readability
+        roomTable.setRowHeight(32);
+
+        // Improve table header appearance
+        roomTable.getTableHeader().setFont(roomTable.getTableHeader().getFont().deriveFont(java.awt.Font.BOLD));
+        roomTable.getTableHeader().setOpaque(false);
+
+        // Make the table selection more visible
+        roomTable.setSelectionBackground(new java.awt.Color(30, 115, 190, 80));
+        roomTable.setSelectionForeground(java.awt.Color.BLACK);
+
+        // Remove grid lines for a cleaner look
+        roomTable.setShowVerticalLines(false);
+        roomTable.setShowHorizontalLines(true);
+        roomTable.setGridColor(new java.awt.Color(230, 230, 230));
+
+        // Enable row sorting
+        roomTable.setAutoCreateRowSorter(true);
+    }
+
+    /**
+     * Sets up the search field with placeholder text behavior. The placeholder
+     * text "Search" will disappear when the field gains focus and reappear when
+     * the field loses focus if it's empty.
      */
     private void setupSearchFieldPlaceholder() {
         // Add placeholder text behavior to search field
@@ -81,7 +151,7 @@ public class RoomListView extends javax.swing.JPanel {
                     searchField.setText("");
                 }
             }
-            
+
             @Override
             public void focusLost(java.awt.event.FocusEvent evt) {
                 // When field loses focus and is empty, restore the "Search" placeholder
@@ -168,69 +238,69 @@ public class RoomListView extends javax.swing.JPanel {
     public void filterTable() {
         String searchText = getSearchText();
         String statusFilter = getSelectedFilter();
-        
-        // If search field contains placeholder text, treat as empty
+
+        // Don't filter if the search field contains the placeholder text "Search"
         if (searchText.equals("Search")) {
             searchText = "";
         }
 
-        RowFilter<DefaultTableModel, Object> combinedFilter = null;
-        List<RowFilter<DefaultTableModel, Object>> filters = new ArrayList<>();
+        final String finalSearchText = searchText;
+        final String finalFilterSelection = statusFilter;
 
-        // Search filter (Column 1 is Room Number) - case insensitive
-        if (!searchText.isEmpty()) {
-            try {
-                filters.add(RowFilter.regexFilter("(?i)" + searchText, 1));
-            } catch (java.util.regex.PatternSyntaxException e) {
-                // Ignore invalid regex
-                LOGGER.warning("Invalid search regex: " + e.getMessage());
-            }
-        }
+        // Create a row filter that handles both search and status filtering
+        RowFilter<DefaultTableModel, Object> compositeFilter = new RowFilter<DefaultTableModel, Object>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Object> entry) {
+                // First check if we should include based on search text
+                if (!finalSearchText.isEmpty()) {
+                    boolean matches = false;
+                    // Check room number (column 1)
+                    String roomNumber = entry.getStringValue(1).toLowerCase();
+                    if (roomNumber.contains(finalSearchText.toLowerCase())) {
+                        matches = true;
+                    }
 
-        // Status filter (Column 5 is Status) - case insensitive
-        if (!statusFilter.equals("All Rooms")) {
-            try {
-                // Map the filter combo box values to potential status values
-                String statusRegex;
-                if (statusFilter.equalsIgnoreCase("Maintenance")) {
-                    // Special case for "Maintenance" to match "UNDER_MAINTENANCE"
-                    statusRegex = "(?i)UNDER_MAINTENANCE|Maintenance";
-                } else {
-                    // For "Vacant" and "Occupied" - make case insensitive
-                    statusRegex = "(?i)" + statusFilter;
+                    if (!matches) {
+                        return false; // No need to check status if search text doesn't match
+                    }
                 }
-                
-                // Apply the case-insensitive filter to status column
-                filters.add(RowFilter.regexFilter(statusRegex, 5));
-            } catch (java.util.regex.PatternSyntaxException e) {
-                // Ignore invalid regex
-                LOGGER.warning("Invalid status filter regex: " + e.getMessage());
+
+                // Then check if we should include based on status filter
+                if (!statusFilter.equals("All Rooms")) {
+                    // Get the status column value (column 5)
+                    String status = entry.getStringValue(5).toUpperCase();
+
+                    switch (statusFilter) {
+                        case "Vacant":
+                            return status.contains("VACANT");
+                        case "Occupied":
+                            return status.contains("OCCUPIED");
+                        case "Maintenance":
+                            return status.contains("MAINTENANCE") || status.contains("UNDER_MAINTENANCE");
+                        default:
+                            return true;
+                    }
+                }
+
+                // If we reach here, include the row
+                return true;
             }
-        }
+        };
 
-        // Combine filters if multiple exist
-        if (!filters.isEmpty()) {
-            combinedFilter = RowFilter.andFilter(filters);
-        }
+        // Apply our custom filter
+        sorter.setRowFilter(compositeFilter);
 
-        // Apply the filter
-        sorter.setRowFilter(combinedFilter); // null clears filter
-        
-        // Log the filtering action for debugging
-        LOGGER.fine("Table filtered - Search: '" + searchText + "', Status: '" + statusFilter + 
-                    "', Filters applied: " + filters.size());
+        LOGGER.fine("Table filtered - Search: '" + searchText + "', Status: '" + statusFilter + "'");
     }
 
     // --- Methods to Add Listeners ---
     public void addAddRoomButtonListener(ActionListener listener) {
         addRoomsButton.addActionListener(listener);
     }
-    
+
     public void addEditRoomButtonListener(ActionListener listener) {
         editButton.addActionListener(listener);
     }
-
-
 
     public void addDeleteButtonListener(ActionListener listener) {
         deleteButton.addActionListener(listener);
@@ -263,7 +333,7 @@ public class RoomListView extends javax.swing.JPanel {
     public int displayConfirmDialog(String message, String title) {
         return JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
     }
-    
+
     public void displayInfoMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Info", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -271,14 +341,162 @@ public class RoomListView extends javax.swing.JPanel {
     public JTable getRoomTable() {
         return roomTable;
     }
-    
+
     /**
      * Gets the "Add Room" button for external access.
-     * 
+     *
      * @return The Add Rooms button component
      */
     public javax.swing.JButton getAddRoomsButton() {
         return addRoomsButton;
+    }
+
+    /**
+     * Applies Tailwind-inspired styling to the RoomListView components. Call
+     * this method after initComponents() in the constructor.
+     */
+    private void applyCustomStyling() {
+        // Tailwind color palette
+        java.awt.Color primary = new java.awt.Color(59, 130, 246);     // blue-500
+        java.awt.Color primaryLight = new java.awt.Color(96, 165, 250); // blue-400
+        java.awt.Color success = new java.awt.Color(34, 197, 94);      // green-500 
+        java.awt.Color danger = new java.awt.Color(239, 68, 68);       // red-500
+        java.awt.Color warning = new java.awt.Color(245, 158, 11);     // amber-500
+        java.awt.Color cyan = new java.awt.Color(8, 145, 178);         // cyan-600
+        java.awt.Color emerald = new java.awt.Color(16, 185, 129);     // emerald-500
+        java.awt.Color orange = new java.awt.Color(249, 115, 22);      // orange-500
+        java.awt.Color purple = new java.awt.Color(147, 51, 234);      // purple-600
+        java.awt.Color bgLight = new java.awt.Color(243, 244, 246);    // gray-100
+        java.awt.Color slate100 = new java.awt.Color(241, 245, 249);   // slate-100
+        java.awt.Color slate200 = new java.awt.Color(226, 232, 240);   // slate-200
+        java.awt.Color slate700 = new java.awt.Color(51, 65, 85);      // slate-700
+        java.awt.Color slate800 = new java.awt.Color(30, 41, 59);      // slate-800
+
+        // Background styling
+        this.setBackground(bgLight);
+
+        // Style title 
+        jLabel1.setForeground(slate800);
+
+        // Style the Add Room button
+        addRoomsButton.setBackground(primary);
+        addRoomsButton.setForeground(java.awt.Color.WHITE);
+        addRoomsButton.setFont(addRoomsButton.getFont().deriveFont(java.awt.Font.BOLD));
+        addRoomsButton.setBorderPainted(false);
+        addRoomsButton.setFocusPainted(false);
+        addRoomsButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        // Style action buttons
+        editButton.setBackground(warning);
+        editButton.setForeground(java.awt.Color.WHITE);
+        editButton.setFont(editButton.getFont().deriveFont(java.awt.Font.BOLD));
+        editButton.setBorderPainted(false);
+        editButton.setFocusPainted(false);
+        editButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        deleteButton.setBackground(danger);
+        deleteButton.setForeground(java.awt.Color.WHITE);
+        deleteButton.setFont(deleteButton.getFont().deriveFont(java.awt.Font.BOLD));
+        deleteButton.setBorderPainted(false);
+        deleteButton.setFocusPainted(false);
+        deleteButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        // Style the search field
+        searchField.setBackground(slate100);
+        searchField.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(slate200, 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+
+        // Style filter combo box
+        filterComboBox.setBackground(java.awt.Color.WHITE);
+        filterComboBox.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(slate200, 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
+
+        // Style summary cards
+        styleCard(jPanel1, primary, "Total Rooms");
+        styleCard(jPanel2, emerald, "Vacant");
+        styleCard(jPanel3, orange, "Occupied");
+        styleCard(jPanel4, purple, "Maintenance");
+
+        // Style the table
+        roomTable.setRowHeight(40);
+        roomTable.setIntercellSpacing(new java.awt.Dimension(10, 0));
+        roomTable.setShowGrid(false);
+        roomTable.setShowHorizontalLines(true);
+        roomTable.setGridColor(slate200);
+
+        // Table header styling
+        roomTable.getTableHeader().setBackground(bgLight);
+        roomTable.getTableHeader().setForeground(slate700);
+        roomTable.getTableHeader().setFont(roomTable.getTableHeader().getFont().deriveFont(java.awt.Font.BOLD));
+        roomTable.getTableHeader().setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, slate200));
+
+        // Table selection styling
+        roomTable.setSelectionBackground(new java.awt.Color(primaryLight.getRed(), primaryLight.getGreen(), primaryLight.getBlue(), 100));
+        roomTable.setSelectionForeground(slate800);
+    }
+
+    /**
+     * Helper method to style a summary card panel with Tailwind-inspired
+     * colors.
+     *
+     * @param panel The panel to style
+     * @param color The main color for the card
+     * @param title The title text (for identifying which labels to style)
+     */
+    private void styleCard(javax.swing.JPanel panel, java.awt.Color color, String title) {
+        // Apply a light version of the color as background
+        panel.setBackground(new java.awt.Color(
+                color.getRed(),
+                color.getGreen(),
+                color.getBlue(),
+                35)); // Very light opacity
+
+        // Add rounded corners and border
+        panel.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new java.awt.Color(color.getRed(), color.getGreen(), color.getBlue(), 100), 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+
+        // Find the title label and the value label in the panel
+        for (java.awt.Component comp : panel.getComponents()) {
+            if (comp instanceof javax.swing.JLabel) {
+                javax.swing.JLabel label = (javax.swing.JLabel) comp;
+                if (label.getText().contains(title) || title.contains(label.getText())) {
+                    // This is the title label
+                    label.setForeground(new java.awt.Color(
+                            color.getRed(),
+                            color.getGreen(),
+                            color.getBlue(),
+                            220)); // Slightly transparent
+                } else {
+                    // This must be the value label
+                    label.setForeground(color); // Use the full color for the value
+                }
+            }
+        }
+    }
+
+    /**
+     * Initializes the components and properly configures the layout to ensure
+     * correct scrolling behavior.
+     */
+    private void setupScrollablePanel() {
+        // Ensure the main panel can properly accommodate scrolling
+        jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        // Make sure the table takes all the available space
+        roomTable.setFillsViewportHeight(true);
+
+        // Ensure the scroll pane doesn't get extra space
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(jScrollPane1.getPreferredSize().width, 500));
+
+        // Ensure the viewport is properly setup
+        jScrollPane1.getViewport().setBackground(this.getBackground());
     }
 
     /**
@@ -313,6 +531,7 @@ public class RoomListView extends javax.swing.JPanel {
         maintenanceValueLabel = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(250, 250, 250));
+        setPreferredSize(new java.awt.Dimension(1200, 900));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI Semibold", 1, 36)); // NOI18N
         jLabel1.setText("Room Management");
@@ -490,9 +709,10 @@ public class RoomListView extends javax.swing.JPanel {
                                     .addGap(55, 55, 55)
                                     .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGap(44, 44, 44)
-                                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(39, 39, 39)
-                                    .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                                                                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+
+                                                                        .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+
                 .addContainerGap(23, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -510,9 +730,10 @@ public class RoomListView extends javax.swing.JPanel {
                             .addComponent(filterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(26, 26, 26)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+
                 .addGap(34, 34, 34)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 472, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)

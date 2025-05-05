@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import java.util.Optional;
 import java.awt.Color; // Import Color
 import java.awt.Dimension; // Import Dimension
+import javax.swing.BorderFactory;
 
 public class Main {
 
@@ -55,49 +56,127 @@ public class Main {
 
     private static void setupLookAndFeel() {
         try {
-            FlatLightLaf.setup(); // Setup FlatLaf Light theme
-
-            // --- Customizations ---
-            // Set a custom accent color (e.g., a shade of blue)
-            UIManager.put("Component.accentColor", new Color(0x4A90E2));
-
-            // Enable rounded corners for text fields and buttons
-            UIManager.put("Component.arc", 5); // Adjust arc value as needed (e.g., 5)
-            UIManager.put("Button.arc", 8);
-            UIManager.put("TextComponent.arc", 5);
-
-            // Table customizations
+            // Set up FlatLaf with a custom theme
+            UIManager.put("Component.focusWidth", 1);
+            UIManager.put("Button.arc", 10);
+            UIManager.put("Component.arc", 8);
+            
+            // Apply FlatLaf Light theme
+            FlatLightLaf.setup();
+            
+            // --- Color Scheme & Accent Colors ---
+            Color primaryColor = new Color(30, 115, 190); // Primary blue color
+            Color secondaryColor = new Color(72, 166, 242); // Lighter blue for secondary elements
+            Color accentColor = new Color(239, 108, 0); // Orange accent for important actions
+            Color subtleColor = new Color(240, 240, 245); // Very light gray-blue for backgrounds
+            
+            // Main accent color settings
+            UIManager.put("Component.accentColor", primaryColor);
+            UIManager.put("hyperlink.foreground", secondaryColor);
+            
+            // --- General Component Styling ---
+            // Rounded corners
+            UIManager.put("TextComponent.arc", 8);
+            UIManager.put("ProgressBar.arc", 12);
+            UIManager.put("Component.arrowType", "chevron");
+            UIManager.put("Button.margin", new Insets(6, 14, 6, 14));
+            
+            // Focus indicators
+            UIManager.put("Component.focusColor", secondaryColor);
+            UIManager.put("Component.focusWidth", 1);
+            UIManager.put("TextField.focusedBackground", new Color(250, 250, 255));
+            
+            // Borders and outlines
+            UIManager.put("Component.borderWidth", 1);
+            
+            // --- Table Customizations ---
+            // Table Row Design
             UIManager.put("Table.showHorizontalLines", true);
-            UIManager.put("Table.showVerticalLines", true);
-            UIManager.put("Table.intercellSpacing", new Dimension(0, 1)); // Add some vertical spacing
-            UIManager.put("Table.alternateRowColor", UIManager.getColor("Table.background").brighter()); // Subtle zebra striping
-
-            // Style for the password visibility toggle button (optional, but good practice)
-            UIManager.put("PasswordField.showRevealButton", true); // FlatLaf built-in support!
-
-            // --- Additional Customizations ---
-
-            // Tabbed Pane styling (if used, e.g., in Dashboard)
-            UIManager.put("TabbedPane.selectedBackground", UIManager.getColor("Component.accentColor")); // Use accent color for selected tab bg
-            UIManager.put("TabbedPane.underlineColor", UIManager.getColor("Component.accentColor")); // Underline selected tab with accent color
-            UIManager.put("TabbedPane.showTabSeparators", true);
-
-            // Scroll Bar styling
-            UIManager.put("ScrollBar.thumbArc", 999); // Round scroll bar thumbs
-            UIManager.put("ScrollBar.thumbInsets", new Insets(2, 2, 2, 2)); // Add padding to thumb
-            UIManager.put("ScrollBar.width", 10); // Make scroll bars slightly thinner
-
-            // Focus Indicator styling
-            UIManager.put("Component.focusWidth", 1); // Thinner focus ring
-            UIManager.put("Component.focusColor", UIManager.getColor("Component.accentColor").darker()); // Use a darker accent color for focus
-
-            // Placeholder text color
-            UIManager.put("TextComponent.placeholderForeground", UIManager.getColor("textInactiveText"));
-
-
-            // Apply the changes immediately (important after setting UIManager properties)
-            FlatLightLaf.updateUI(); // Update all existing components if any were created before this point
-
+            UIManager.put("Table.showVerticalLines", false); // Modern tables often omit vertical lines
+            UIManager.put("Table.rowHeight", 30); // Increased row height for better readability
+            UIManager.put("Table.cellMargins", new Insets(4, 8, 4, 8)); // Add padding inside cells
+            UIManager.put("Table.intercellSpacing", new Dimension(0, 1)); // Minimal spacing between cells
+            
+            // Table Colors
+            UIManager.put("Table.background", Color.WHITE);
+            UIManager.put("Table.alternateRowColor", new Color(248, 250, 252)); // Very subtle alternating color
+            UIManager.put("Table.selectionBackground", primaryColor.brighter());
+            UIManager.put("Table.selectionForeground", Color.WHITE);
+            UIManager.put("Table.focusCellBackground", new Color(232, 242, 254)); // Light blue for focused cell
+            UIManager.put("Table.gridColor", new Color(230, 230, 230)); // Light gray grid lines
+            
+            // Table Header Styling
+            UIManager.put("TableHeader.background", subtleColor);
+            UIManager.put("TableHeader.foreground", new Color(60, 60, 60)); // Dark gray text
+            UIManager.put("TableHeader.font", UIManager.getFont("TableHeader.font").deriveFont(java.awt.Font.BOLD));
+            UIManager.put("TableHeader.cellBorder", BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(200, 200, 200)),
+                    BorderFactory.createEmptyBorder(8, 8, 8, 8)));
+            
+            // --- Scroll Bar Styling ---
+            UIManager.put("ScrollBar.thumbArc", 999); // Rounded thumb
+            UIManager.put("ScrollBar.thumbInsets", new Insets(2, 2, 2, 2));
+            UIManager.put("ScrollBar.width", 10); // Thinner scrollbars
+            UIManager.put("ScrollBar.track", subtleColor);
+            UIManager.put("ScrollBar.thumb", new Color(180, 180, 180));
+            UIManager.put("ScrollBar.thumbDarkShadow", new Color(180, 180, 180));
+            UIManager.put("ScrollBar.thumbHighlight", new Color(180, 180, 180));
+            UIManager.put("ScrollBar.thumbShadow", new Color(180, 180, 180));
+            
+            // --- Panel & Container Styling ---
+            UIManager.put("Panel.background", Color.WHITE);
+            UIManager.put("SplitPane.background", Color.WHITE);
+            UIManager.put("TabbedPane.contentAreaColor", Color.WHITE);
+            
+            // --- Button Styling ---
+            // Primary action button (e.g. Save, Submit)
+            UIManager.put("Button.default.background", accentColor);
+            UIManager.put("Button.default.foreground", Color.WHITE);
+            UIManager.put("Button.default.focusedBackground", accentColor.darker());
+            
+            // Normal buttons
+            UIManager.put("Button.hoverBackground", new Color(235, 235, 240));
+            UIManager.put("Button.pressedBackground", new Color(225, 225, 230));
+            
+            // --- Form Field Styling ---
+            // Text fields
+            UIManager.put("TextField.margin", new Insets(4, 8, 4, 8));
+            UIManager.put("TextComponent.arc", 8);
+            UIManager.put("TextComponent.placeholderForeground", new Color(160, 160, 160));
+            
+            // Combo boxes
+            UIManager.put("ComboBox.padding", new Insets(4, 8, 4, 8));
+            UIManager.put("ComboBox.selectionBackground", primaryColor);
+            UIManager.put("ComboBox.selectionForeground", Color.WHITE);
+            
+            // --- Tabs Styling ---
+            UIManager.put("TabbedPane.selectedBackground", Color.WHITE);
+            UIManager.put("TabbedPane.underlineColor", primaryColor);
+            UIManager.put("TabbedPane.showTabSeparators", false);
+            UIManager.put("TabbedPane.tabSeparatorColor", new Color(230, 230, 230));
+            UIManager.put("TabbedPane.tabHeight", 36);
+            UIManager.put("TabbedPane.contentAreaInsets", new Insets(12, 12, 12, 12));
+            
+            // --- ToolTip Styling ---
+            UIManager.put("ToolTip.background", new Color(50, 50, 50, 230));
+            UIManager.put("ToolTip.foreground", Color.WHITE);
+            UIManager.put("ToolTip.border", BorderFactory.createEmptyBorder(6, 10, 6, 10));
+            UIManager.put("ToolTip.smallFont", UIManager.getFont("ToolTip.font").deriveFont(11f));
+            
+            // --- Dialog & Modal Styling ---
+            UIManager.put("OptionPane.messageFont", UIManager.getFont("Label.font").deriveFont(java.awt.Font.PLAIN, 14));
+            UIManager.put("OptionPane.buttonFont", UIManager.getFont("Button.font").deriveFont(java.awt.Font.BOLD));
+            UIManager.put("OptionPane.messageAreaBorder", BorderFactory.createEmptyBorder(16, 16, 16, 16));
+            UIManager.put("OptionPane.buttonAreaBorder", BorderFactory.createEmptyBorder(0, 16, 16, 16));
+            
+            // --- Typography Enhancements ---
+            // Improve font rendering for all components
+            System.setProperty("awt.useSystemAAFontSettings", "on");
+            System.setProperty("swing.aatext", "true");
+            
+            // Apply the changes immediately
+            FlatLightLaf.updateUI();
+            
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to initialize or customize FlatLaf Look and Feel.", e);
             // Optionally fall back to system L&F or default if FlatLaf fails

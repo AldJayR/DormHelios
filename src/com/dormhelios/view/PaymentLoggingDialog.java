@@ -193,6 +193,10 @@ public class PaymentLoggingDialog extends javax.swing.JDialog {
      */
     public void setSaved(boolean saved) {
         this.saved = saved;
+        // If saved successfully, clear the form
+        if (saved) {
+            clearForm();
+        }
     }
 
     /**

@@ -265,63 +265,96 @@ public class RoomDAOImpl implements RoomDAO {
     }
     
     @Override
-    public boolean decrementSlotsAvailable(int roomId) {
+    public boolean decrementSlotsAvailable(int roomId, Connection conn) throws SQLException { // Add conn parameter, throws SQLException
         final String sql = "UPDATE ROOMS SET slots_available = slots_available - 1, updated_at = NOW() " +
                           "WHERE id = ? AND slots_available > 0";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
+        // Use the provided connection, DO NOT get/close connection here
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, roomId);
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows == 0) {
-                // No rows affected could mean either:
-                // 1. Room doesn't exist
-                // 2. Room already has 0 slots available
-                LOGGER.log(Level.WARNING, "Failed to decrement slots_available for roomId: " + roomId + 
+                // Log, but let the caller decide rollback based on return value/exception
+                LOGGER.log(Level.WARNING, "(Tx) Failed to decrement slots_available for roomId: " + roomId +
                                          ". Room may not exist or have no available slots.");
                 return false;
             }
-            
+
             return true;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error decrementing slots_available for room: " + roomId, e);
-            return false;
+            // Log the error but re-throw it so the transaction can be rolled back
+            LOGGER.log(Level.SEVERE, "(Tx) Error decrementing slots_available for room: " + roomId, e);
+            throw e; // Re-throw SQLException
         }
     }
 
     @Override
-    public boolean incrementSlotsAvailable(int roomId) {
-        Optional<Room> roomOptional = findById(roomId);
-        if (!roomOptional.isPresent()) {
-            LOGGER.log(Level.WARNING, "Cannot increment slots_available: Room not found with ID: " + roomId);
-            return false;
-        }
-        
-        Room room = roomOptional.get();
-        if (room.getSlotsAvailable() >= room.getCapacity()) {
-            LOGGER.log(Level.WARNING, "Cannot increment slots_available: Room already at max capacity: " + roomId);
-            return false;
-        }
-        
+    public boolean incrementSlotsAvailable(int roomId, Connection conn) throws SQLException { // Add conn parameter, throws SQLException
         final String sql = "UPDATE ROOMS SET slots_available = slots_available + 1, updated_at = NOW() " +
                           "WHERE id = ? AND slots_available < capacity";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
+        // Use the provided connection, DO NOT get/close connection here
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, roomId);
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows == 0) {
-                LOGGER.log(Level.WARNING, "Failed to increment slots_available for roomId: " + roomId);
+                LOGGER.log(Level.WARNING, "(Tx) Failed to increment slots_available for roomId: " + roomId +
+                                         ". Room may not exist or is already at full capacity.");
                 return false;
             }
-            
+
             return true;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error incrementing slots_available for room: " + roomId, e);
+            // Log the error but re-throw it so the transaction can be rolled back
+            LOGGER.log(Level.SEVERE, "(Tx) Error incrementing slots_available for room: " + roomId, e);
+            throw e; // Re-throw SQLException
+        }
+    }
+
+    /**
+     * Decrements slots available for a room using its own connection (non-transactional).
+     * @param roomId The ID of the room.
+     * @return true if successful, false otherwise.
+     */
+    public boolean decrementSlotsAvailable(int roomId) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+             // We can potentially call the transactional version here,
+             // but managing commit/rollback for a single operation is simple.
+             conn.setAutoCommit(true); // Ensure auto-commit is on for single operation
+             // Need to handle the SQLException thrown by the transactional version
+             try {
+                 return decrementSlotsAvailable(roomId, conn);
+             } catch (SQLException innerEx) {
+                 LOGGER.log(Level.SEVERE, "SQLException occurred within non-tx decrementSlotsAvailable wrapper for room: " + roomId, innerEx);
+                 return false;
+             }
+        } catch (SQLException e) {
+             LOGGER.log(Level.SEVERE, "Error getting connection for non-tx decrementSlotsAvailable for room: " + roomId, e);
+             return false;
+        }
+    }
+
+    /**
+     * Increments slots available for a room using its own connection (non-transactional).
+     * @param roomId The ID of the room.
+     * @return true if successful, false otherwise.
+     */
+    public boolean incrementSlotsAvailable(int roomId) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(true); // Ensure auto-commit is on for single operation
+            // Need to handle the SQLException thrown by the transactional version
+            try {
+                return incrementSlotsAvailable(roomId, conn);
+            } catch (SQLException innerEx) {
+                LOGGER.log(Level.SEVERE, "SQLException occurred within non-tx incrementSlotsAvailable wrapper for room: " + roomId, innerEx);
+                return false;
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting connection for non-tx incrementSlotsAvailable for room: " + roomId, e);
             return false;
         }
     }

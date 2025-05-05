@@ -9,6 +9,8 @@ import javax.swing.event.DocumentListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -65,6 +67,8 @@ public class TenantController {
                 try {
                     List<TenantWithRoom> tenants = get();
                     listView.displayTenantsWithRooms(tenants);
+                    // Apply current filters/search after loading new data
+                    listView.filterTable();
                 } catch (InterruptedException | ExecutionException e) {
                     LOGGER.log(Level.SEVERE, "Error loading tenants", e.getCause());
                     listView.displayErrorMessage("Error loading tenants: " + e.getCause().getMessage());
@@ -79,20 +83,38 @@ public class TenantController {
         listView.addEditButtonListener(e -> openEditDialog());
         listView.addDeleteButtonListener(e -> deactivateTenant());
         listView.addViewButtonListener(e -> openDetailDialog());
+        
+        // Fix the search field listener implementation
         listView.addSearchFieldListener(new DocumentListener() {
+            @Override
             public void insertUpdate(DocumentEvent e) {
-                listView.filterTable();
+                SwingUtilities.invokeLater(() -> listView.filterTable());
+                System.out.println("Searching!");
             }
 
+            @Override
             public void removeUpdate(DocumentEvent e) {
-                listView.filterTable();
+                SwingUtilities.invokeLater(() -> listView.filterTable());
             }
 
+            @Override
             public void changedUpdate(DocumentEvent e) {
-                listView.filterTable();
+                SwingUtilities.invokeLater(() -> listView.filterTable());
             }
         });
-        listView.addFilterComboBoxListener(e -> listView.filterTable());
+        
+        listView.addFilterComboBoxListener(e -> {
+            // Use invokeLater for consistency
+            SwingUtilities.invokeLater(() -> listView.filterTable());
+        });
+
+        // Fallback: listen to key releases directly on the search field
+        listView.getSearchField().addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                SwingUtilities.invokeLater(() -> listView.filterTable());
+            }
+        });
     }
 
     private void openAddDialog() {
@@ -158,7 +180,34 @@ public class TenantController {
         if (data == null) {
             return;
         }
-        createTenant(data);
+        
+        SwingWorker<Integer, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Integer doInBackground() {
+                return tenantDAO.addTenant(data);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    int tenantId = get();
+                    if (tenantId > 0) {
+                        formDialog.setSaved(true);
+                        formDialog.closeDialog();
+                        // Refresh the tenant list
+                        loadInitialData();
+                        // Notify RoomController to refresh its data
+                        notifyRoomListUpdate();
+                    } else {
+                        formDialog.displayErrorMessage("Failed to add tenant.");
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    LOGGER.log(Level.SEVERE, "Error adding tenant", e.getCause());
+                    formDialog.displayErrorMessage("Error: " + e.getCause().getMessage());
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void saveUpdatedTenant() {
@@ -184,20 +233,28 @@ public class TenantController {
                 boolean roomChanged = (oldRoomId == null && newRoomId != null) || 
                                      (oldRoomId != null && !oldRoomId.equals(newRoomId));
                 
+                // If room has changed, use assignTenantToRoom which handles slots properly
                 if (roomChanged) {
-                    // If the tenant was previously assigned to a room, increment its available slots
-                    if (oldRoomId != null && oldRoomId > 0) {
-                        roomDAO.incrementSlotsAvailable(oldRoomId);
+                    // Store the room ID temporarily
+                    Integer tempRoomId = data.getRoomId();
+                    
+                    // Set room to null for the main update to avoid double-counting
+                    data.setRoomId(null);
+                    
+                    // First update the tenant data without room change
+                    boolean updateSuccess = tenantDAO.updateTenant(data);
+                    if (!updateSuccess) {
+                        return false;
                     }
                     
-                    // If the tenant is being assigned to a new room, decrement its available slots
-                    if (newRoomId != null && newRoomId > 0) {
-                        roomDAO.decrementSlotsAvailable(newRoomId);
-                    }
+                    // Then use the transactional assignTenantToRoom method to handle the room change
+                    // This method internally manages incrementing old room and decrementing new room
+                    boolean assignSuccess = tenantDAO.assignTenantToRoom(data.getTenantId(), tempRoomId);
+                    return assignSuccess;
+                } else {
+                    // No room change, just update the tenant normally
+                    return tenantDAO.updateTenant(data);
                 }
-                
-                // Update the tenant record
-                return tenantDAO.updateTenant(data);
             }
 
             @Override
@@ -303,17 +360,23 @@ public class TenantController {
         worker.execute();
     }
 
-    public void createTenant(Tenant tenant) {
-        TenantDAO tenantDAO = new TenantDAOImpl();
+    /**
+     * Public method to create a tenant, which can be called by external controllers.
+     * Uses the instance tenantDAO rather than creating a new instance.
+     * 
+     * @param tenant The tenant data to save
+     * @return The ID of the newly created tenant, or -1 if failed
+     */
+    public int createTenant(Tenant tenant) {
+        // Use the instance tenantDAO instead of creating a new one
         int tenantId = tenantDAO.addTenant(tenant);
-
-        // If tenant was successfully added and assigned to a room
-        if (tenantId > 0 && tenant.getRoomId() != null && tenant.getRoomId() > 0) {
-            // Update the room assignment which will decrement slots_available
-            tenantDAO.assignTenantToRoom(tenantId, tenant.getRoomId());
+        
+        if (tenantId > 0) {
+            // Refresh the tenant list if the tenant was added successfully
+            refreshTenantList();
         }
-
-        refreshTenantList();
+        
+        return tenantId;
     }
 
     private void refreshTenantList() {

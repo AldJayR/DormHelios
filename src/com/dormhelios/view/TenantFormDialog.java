@@ -127,9 +127,28 @@ public class TenantFormDialog extends javax.swing.JDialog {
     }
 
     public void setRoomComboBoxModel(List<Room> rooms) {
-        populateComboBox(roomComboBox, rooms, "Select Room...",
+        // Filter rooms to only show available ones (not occupied or with available slots > 0)
+        List<Room> availableRooms = rooms.stream()
+                .filter(room -> room.getSlotsAvailable() > 0 && 
+                       room.getStatus() != Room.RoomStatus.OCCUPIED &&
+                       room.isActive())
+                .collect(java.util.stream.Collectors.toList());
+        
+        // For editing a tenant, we need to include their current room even if it's otherwise full
+        if (currentTenant != null && currentTenant.getRoomId() != null) {
+            // Find the tenant's current room if it exists in the original list but not in available rooms
+            rooms.stream()
+                    .filter(room -> room.getRoomId() == currentTenant.getRoomId())
+                    .filter(room -> availableRooms.stream().noneMatch(ar -> ar.getRoomId() == room.getRoomId()))
+                    .findFirst()
+                    .ifPresent(availableRooms::add);
+        }
+        
+        // Populate the combobox with the filtered list
+        populateComboBox(roomComboBox, availableRooms, "Select Room...",
                 room -> room.getRoomId(),
-                room -> room.getRoomNumber()); // Display Room Number
+                room -> room.getRoomNumber() + " (" + room.getSlotsAvailable() + " slots available)");
+        
         // Reselect current tenant's room if editing
         if (currentTenant != null) {
             selectComboBoxItemById(roomComboBox, currentTenant.getRoomId());

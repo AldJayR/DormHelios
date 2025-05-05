@@ -4,7 +4,12 @@ import java.awt.CardLayout;
 import java.awt.event.ActionListener;
 import javax.swing.JPanel;
 import javax.swing.JButton;
+import javax.swing.JScrollPane;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Cursor;
+import javax.swing.SwingConstants;
+import javax.swing.BorderFactory;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
@@ -18,27 +23,38 @@ public class MainDashboardView extends javax.swing.JFrame {
     public static final String ROOMS_PANEL = "ROOMS";
     public static final String PAYMENTS_PANEL = "PAYMENTS";
     private CardLayout cardLayout;
-    private final PropertyChangeSupport propertyChangeSupport;
+    private PropertyChangeSupport propertyChangeSupport;
 
     public MainDashboardView() {
-        propertyChangeSupport = new PropertyChangeSupport(this);
+        // Initialize propertyChangeSupport before any other initialization
+        this.propertyChangeSupport = new PropertyChangeSupport(this);
         initComponents();
         setLocationRelativeTo(null);
         setupComponents();
+        applyCustomStyling();
         setExtendedState(javax.swing.JFrame.MAXIMIZED_BOTH);
     }
 
     // Add property change support methods
     public void addPropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.addPropertyChangeListener(listener);
+        // Check to ensure propertyChangeSupport is not null before using it
+        if (propertyChangeSupport != null) {
+            propertyChangeSupport.addPropertyChangeListener(listener);
+        }
     }
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
-        propertyChangeSupport.removePropertyChangeListener(listener);
+        // Check to ensure propertyChangeSupport is not null before using it
+        if (propertyChangeSupport != null) {
+            propertyChangeSupport.removePropertyChangeListener(listener);
+        }
     }
 
     public void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-        propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        // Check to ensure propertyChangeSupport is not null before using it
+        if (propertyChangeSupport != null) {
+            propertyChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
+        }
     }
 
     /**
@@ -52,6 +68,57 @@ public class MainDashboardView extends javax.swing.JFrame {
         cardLayout = new CardLayout();
         contentPanel.setLayout(cardLayout);
     }
+
+    /**
+     * Applies Tailwind-inspired styling to the MainDashboard components.
+     * Call this method after initComponents() in the constructor.
+     */
+    private void applyCustomStyling() {
+        // Tailwind color palette
+        Color primary = new Color(59, 130, 246);    // blue-500
+        Color primaryDark = new Color(37, 99, 235); // blue-600
+        Color success = new Color(34, 197, 94);     // green-500
+        Color bgLight = new Color(243, 244, 246);   // gray-100
+        Color slate200 = new Color(226, 232, 240);  // slate-200
+        Color slate700 = new Color(51, 65, 85);     // slate-700
+        Color slate800 = new Color(30, 41, 59);     // slate-800
+        
+        // Style the sidebar
+        sidebarPanel.setBackground(bgLight);
+        sidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, slate200));
+        
+        // Style the content area
+        contentPanel.setBackground(Color.WHITE);
+        jScrollPane1.setBorder(BorderFactory.createEmptyBorder());
+        
+        // Style username display
+        userInfoLabel.setForeground(slate800);
+        userInfoLabel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, slate200),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)
+        ));
+        
+        // Style the navigation buttons
+        JButton[] navButtons = {dashboardButton, tenantsButton, dormsButton, paymentsButton};
+        for (JButton button : navButtons) {
+            button.setBackground(bgLight);
+            button.setForeground(slate700);
+            button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
+            button.setFont(button.getFont().deriveFont(Font.PLAIN, 16));
+            button.setHorizontalAlignment(SwingConstants.LEFT);
+            button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
+            // Make button look better when clicked without actually having a visible border
+            button.setFocusPainted(false);
+            button.setContentAreaFilled(true);
+            button.setOpaque(true);
+        }
+        
+        // Style logout button
+        logoutButton.setForeground(primary);
+        logoutButton.setFont(logoutButton.getFont().deriveFont(Font.BOLD));
+    }
+
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -159,9 +226,11 @@ public class MainDashboardView extends javax.swing.JFrame {
 
         getContentPane().add(sidebarPanel, java.awt.BorderLayout.LINE_START);
 
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(1068, 900));
+
         contentPanel.setBackground(new java.awt.Color(250, 250, 250));
         contentPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
-        contentPanel.setPreferredSize(new java.awt.Dimension(1066, 850));
+        contentPanel.setPreferredSize(new java.awt.Dimension(1066, 950));
 
         javax.swing.GroupLayout contentPanelLayout = new javax.swing.GroupLayout(contentPanel);
         contentPanel.setLayout(contentPanelLayout);
@@ -171,7 +240,7 @@ public class MainDashboardView extends javax.swing.JFrame {
         );
         contentPanelLayout.setVerticalGroup(
             contentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 848, Short.MAX_VALUE)
+            .addGap(0, 948, Short.MAX_VALUE)
         );
 
         jScrollPane1.setViewportView(contentPanel);
@@ -212,6 +281,10 @@ public class MainDashboardView extends javax.swing.JFrame {
      */
     public JButton getTenantsButton() {
         return tenantsButton;
+    }
+    
+    public JScrollPane getJScrollPane() {
+        return jScrollPane1;
     }
 
     public void addDashboardButtonListener(ActionListener listener) {

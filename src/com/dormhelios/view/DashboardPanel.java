@@ -1,10 +1,16 @@
 package com.dormhelios.view;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionListener;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import java.awt.Cursor;
+import java.awt.Component;
 
 public class DashboardPanel extends javax.swing.JPanel {
 
@@ -13,6 +19,7 @@ public class DashboardPanel extends javax.swing.JPanel {
      */
     public DashboardPanel() {
         initComponents();
+        applyCustomStyling(); // Apply our custom styling after initialization
     }
 
     /**
@@ -462,7 +469,227 @@ public void setTotalTenants(int count, String changeText) {
         addRoomButton.addActionListener(listener);
     }
 
-
+    /**
+     * Applies custom Tailwind-inspired styling to the dashboard panel components.
+     * Call this method after initComponents() in the constructor.
+     */
+    private void applyCustomStyling() {
+        // Tailwind color palette
+        Color primary = new Color(59, 130, 246);     // blue-500
+        Color primaryLight = new Color(96, 165, 250); // blue-400
+        Color success = new Color(34, 197, 94);      // green-500 
+        Color successLight = new Color(74, 222, 128); // green-400
+        Color danger = new Color(239, 68, 68);       // red-500
+        Color warning = new Color(245, 158, 11);     // amber-500
+        Color warningLight = new Color(251, 191, 36); // amber-400
+        Color purple = new Color(147, 51, 234);      // purple-600
+        Color purpleLight = new Color(192, 132, 252); // purple-400
+        Color cyan = new Color(8, 145, 178);         // cyan-600
+        Color emerald = new Color(16, 185, 129);     // emerald-500
+        Color orange = new Color(249, 115, 22);      // orange-500
+        Color orangeLight = new Color(251, 146, 60); // orange-400
+        Color indigo = new Color(79, 70, 229);       // indigo-600
+        Color indigoLight = new Color(129, 140, 248); // indigo-400
+        Color bgLight = new Color(243, 244, 246);    // gray-100
+        Color slate100 = new Color(241, 245, 249);   // slate-100
+        
+        // Background styling
+        this.setBackground(bgLight);
+        
+        // Style title bar
+        jPanel1.setBackground(Color.WHITE);
+        jPanel1.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, slate100),
+            BorderFactory.createEmptyBorder(8, 16, 8, 16)
+        ));
+        jLabel1.setForeground(Color.BLACK);
+        
+        // Style the main dashboard cards with modern Tailwind-style
+        styleCard(totalTenantsCard, primary, primaryLight, "👥", "Total Tenants");
+        styleCard(occupancyCard, emerald, successLight, "🏠", "Occupancy Rate");
+        styleCard(revenueCard, indigo, indigoLight, "💰", "Monthly Revenue");
+        
+        // Style the content metrics within the cards
+        totalTenantsLabel.setForeground(primary);
+        tenantChangeLabel.setForeground(new Color(primary.getRed(), primary.getGreen(), primary.getBlue(), 200));
+        
+        occupancyRateLabel.setForeground(emerald);
+        occupancyDetailLabel.setForeground(new Color(emerald.getRed(), emerald.getGreen(), emerald.getBlue(), 200));
+        
+        monthlyRevenueLabel.setForeground(indigo);
+        
+        // Style the larger panels
+        stylePanel(paymentStatusPanel, slate100, "Payment Status");
+        stylePanel(recentActivitiesPanel, slate100, "Recent Activities");
+        stylePanel(remindersPanel, slate100, "Reminders & Alerts");
+        stylePanel(jPanel2, slate100, "Quick Actions");
+        
+        // Style the chart placeholder
+        chartPlaceholderPanel.setBackground(Color.WHITE);
+        chartPlaceholderPanel.setBorder(BorderFactory.createLineBorder(slate100, 1, true));
+        
+        // Style the list components
+        remindersList.setBackground(Color.WHITE);
+        remindersList.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        remindersList.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        
+        recentActivitiesList.setBackground(Color.WHITE);
+        recentActivitiesList.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        recentActivitiesList.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        
+        // Style scroll panes
+        styleScrollPane(jScrollPane1);
+        styleScrollPane(jScrollPane2);
+        
+        // Style action buttons with different colors
+        styleButton(addTenantButton, primary, "Add Tenant");
+        styleButton(newPaymentButton, emerald, "New Payment");
+        styleButton(sendReminderButton, warning, "Send Reminder");
+        styleButton(addRoomButton, indigo, "Add Room");
+    }
+    
+    /**
+     * Helper method to style a card with a Tailwind-inspired gradient background
+     * 
+     * @param card The panel to style
+     * @param mainColor The primary color
+     * @param lightColor The lighter version of the color for gradient
+     * @param iconText The icon text (emoji or character)
+     * @param title The title of the card (for identifying labels)
+     */
+    private void styleCard(JPanel card, Color mainColor, Color lightColor, String iconText, String title) {
+        // Define slate colors locally
+        Color slate700 = new Color(51, 65, 85);      // slate-700
+        
+        // Set a gradient background effect
+        card.setBackground(Color.WHITE);
+        
+        // Add rounded corners and border with shadow effect
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(1, 1, 3, 3),
+                BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(mainColor.getRed(), mainColor.getGreen(), mainColor.getBlue(), 40), 1, true),
+                    BorderFactory.createEmptyBorder(12, 16, 12, 16)
+                )
+        ));
+        
+        // Find and style the icon label and title label
+        for (Component comp : card.getComponents()) {
+            if (comp instanceof JLabel) {
+                JLabel label = (JLabel) comp;
+                
+                // Style the icon label
+                if (label.getText().equals("placeholder")) {
+                    label.setText(iconText);
+                    label.setFont(new Font("Segoe UI", Font.PLAIN, 24));
+                    label.setForeground(mainColor);
+                    
+                    // Create a rounded background for the icon
+                    label.setOpaque(true);
+                    label.setBackground(new Color(mainColor.getRed(), mainColor.getGreen(), mainColor.getBlue(), 20));
+                    label.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+                }
+                // Style the title label
+                else if (label.getText().contains(title) || title.contains(label.getText())) {
+                    label.setForeground(slate700);
+                    label.setFont(new Font("Segoe UI SemiBold", Font.BOLD, 20));
+                }
+                // Leave the data labels alone - we style them separately
+            }
+        }
+        
+        // Add a subtle left border accent
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 4, 0, 0, mainColor),
+                card.getBorder()
+        ));
+    }
+    
+    /**
+     * Helper method to style a panel with consistent styling
+     * 
+     * @param panel The panel to style
+     * @param bgColor The background color
+     * @param title The title text
+     */
+    private void stylePanel(JPanel panel, Color bgColor, String title) {
+        // Define slate colors locally
+        Color slate200 = new Color(226, 232, 240);   // slate-200
+        Color slate800 = new Color(30, 41, 59);      // slate-800
+        
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(slate200.getRed(), slate200.getGreen(), slate200.getBlue(), 200), 1, true),
+                BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        ));
+        
+        // Find and style the title label
+        for (Component comp : panel.getComponents()) {
+            if (comp instanceof JLabel) {
+                JLabel label = (JLabel) comp;
+                if (label.getText().contains(title) || title.contains(label.getText())) {
+                    label.setForeground(slate800);
+                    label.setFont(new Font("Segoe UI", Font.BOLD, 20));
+                    // Add a bottom border to the title
+                    label.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(slate200.getRed(), slate200.getGreen(), slate200.getBlue(), 150)));
+                }
+            }
+        }
+    }
+    
+    /**
+     * Helper method to style scroll panes consistently
+     * 
+     * @param scrollPane The scroll pane to style
+     */
+    private void styleScrollPane(JScrollPane scrollPane) {
+        // Define slate color locally
+        Color slate200 = new Color(226, 232, 240);   // slate-200
+        
+        scrollPane.setBorder(BorderFactory.createLineBorder(slate200, 1));
+        scrollPane.getViewport().setBackground(Color.WHITE);
+    }
+    
+    /**
+     * Helper method to style a button with Tailwind-inspired styles
+     * 
+     * @param button The button to style
+     * @param color The main button color
+     * @param text Optional text to set
+     */
+    private void styleButton(JButton button, Color color, String text) {
+        if (text != null && !text.isEmpty()) {
+            button.setText(text);
+        }
+        
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+        button.setFont(button.getFont().deriveFont(Font.BOLD));
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Add padding for better appearance
+        button.setMargin(new java.awt.Insets(8, 14, 8, 14));
+        
+        // Add hover effect using MouseListener
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(
+                        Math.min(color.getRed() + 20, 255),
+                        Math.min(color.getGreen() + 20, 255),
+                        Math.min(color.getBlue() + 20, 255)
+                ));
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(color);
+            }
+        });
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addRoomButton;
     private javax.swing.JButton addTenantButton;

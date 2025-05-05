@@ -18,6 +18,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.awt.Graphics2D;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
+import java.io.File;
+import java.io.IOException;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
+import javax.print.attribute.standard.Destination;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.net.URI;
 
 public class ReceiptDialog extends javax.swing.JDialog {
 
@@ -154,6 +167,126 @@ public class ReceiptDialog extends javax.swing.JDialog {
     // Method to get the component to print (optional, for controller)
     public JPanel getPrintableComponent() {
         return receiptContentPanel; // Name the main content panel in Matisse
+    }
+
+    /**
+     * Saves the receipt as a PDF file.
+     * Uses Java Print API to "print" to a PDF file.
+     */
+    public void saveReceiptAsPDF() {
+        // Create a file chooser
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Save Receipt as PDF");
+        
+        // Set default filename based on tenant and date if available
+        String defaultFilename = "Receipt";
+        if (!tenantValueLabel.getText().isEmpty() && !paymentDateValueLabel.getText().isEmpty()) {
+            String tenant = tenantValueLabel.getText().replaceAll("[^a-zA-Z0-9]", "_");
+            String date = paymentDateValueLabel.getText();
+            defaultFilename = "Receipt_" + tenant + "_" + date;
+        }
+        
+        // Set up file filter and default name
+        fileChooser.setSelectedFile(new File(defaultFilename + ".pdf"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("PDF Files (*.pdf)", "pdf"));
+        
+        // Show save dialog
+        int returnVal = fileChooser.showSaveDialog(this);
+        
+        if (returnVal != JFileChooser.APPROVE_OPTION) {
+            LOGGER.info("PDF save operation cancelled by user");
+            return;
+        }
+        
+        File selectedFile = fileChooser.getSelectedFile();
+        // Add .pdf extension if not present
+        if (!selectedFile.getName().toLowerCase().endsWith(".pdf")) {
+            selectedFile = new File(selectedFile.getAbsolutePath() + ".pdf");
+        }
+        
+        // Check if file exists and confirm overwrite
+        if (selectedFile.exists()) {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "File " + selectedFile.getName() + " already exists. Overwrite?",
+                    "Confirm Overwrite",
+                    JOptionPane.YES_NO_OPTION);
+            
+            if (confirm != JOptionPane.YES_OPTION) {
+                LOGGER.info("PDF overwrite cancelled by user");
+                return;
+            }
+        }
+        
+        try {
+            // Setup printer job
+            PrinterJob job = PrinterJob.getPrinterJob();
+            
+            // Set up the printable component (the receipt panel)
+            final JPanel contentPanel = receiptContentPanel;
+            
+            // Create a Printable object
+            java.awt.print.Printable printable = new java.awt.print.Printable() {
+                @Override
+                public int print(java.awt.Graphics graphics, PageFormat pageFormat, int pageIndex) 
+                        throws PrinterException {
+                    if (pageIndex > 0) {
+                        return java.awt.print.Printable.NO_SUCH_PAGE;
+                    }
+                    
+                    // Calculate scale to fit panel to page
+                    double scaleX = pageFormat.getImageableWidth() / contentPanel.getWidth();
+                    double scaleY = pageFormat.getImageableHeight() / contentPanel.getHeight();
+                    double scale = Math.min(scaleX, scaleY);
+                    
+                    // Create a scaled graphics context
+                    Graphics2D g2d = (Graphics2D)graphics;
+                    g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+                    g2d.scale(scale, scale);
+                    
+                    // Print the panel
+                    contentPanel.print(g2d);
+                    
+                    return java.awt.print.Printable.PAGE_EXISTS;
+                }
+            };
+            
+            // Set up page format
+            PageFormat pageFormat = job.defaultPage();
+            Paper paper = pageFormat.getPaper();
+            
+            // Set margins (0.5 inch on all sides)
+            double margin = 36; // 0.5 inch in points (72 points = 1 inch)
+            paper.setImageableArea(margin, margin, paper.getWidth() - margin * 2, 
+                    paper.getHeight() - margin * 2);
+            pageFormat.setPaper(paper);
+            
+            job.setPrintable(printable, pageFormat);
+            
+            // Set up attributes to save as PDF
+            PrintRequestAttributeSet attributes = new HashPrintRequestAttributeSet();
+            attributes.add(new Destination(selectedFile.toURI()));
+            
+            // "Print" to PDF file
+            job.print(attributes);
+            
+            JOptionPane.showMessageDialog(this, 
+                    "Receipt saved as PDF: " + selectedFile.getName(), 
+                    "Save Successful", JOptionPane.INFORMATION_MESSAGE);
+            
+            LOGGER.info("Receipt saved as PDF to " + selectedFile.getAbsolutePath());
+            
+        } catch (PrinterException e) {
+            LOGGER.log(Level.SEVERE, "Error saving receipt as PDF", e);
+            JOptionPane.showMessageDialog(this,
+                    "Could not save receipt: " + e.getMessage(),
+                    "Save Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Unexpected error saving receipt as PDF", e);
+            JOptionPane.showMessageDialog(this,
+                    "An unexpected error occurred: " + e.getMessage(),
+                    "Save Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**

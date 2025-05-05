@@ -13,6 +13,13 @@ import javax.swing.JTable;
 import javax.swing.RowFilter;
 import javax.swing.event.DocumentListener;
 import java.time.LocalDate;
+import javax.swing.table.TableColumnModel;
+import java.awt.Color;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import javax.swing.JButton;
 
 public class TenantListView extends javax.swing.JPanel {
 
@@ -25,9 +32,14 @@ public class TenantListView extends javax.swing.JPanel {
     public TenantListView() {
         initComponents();
         setupTable();
+        setupSearchFieldPlaceholder();
+        setupTableAppearance();
+        applyCustomStyling();
     }
 
     private void setupTable() {
+        // Clear any placeholder text so search starts empty
+        searchField.setText("");
         // Define table columns - Match your wireframe/needs
         String[] columnNames = {"ID", "Name", "Room No.", "Check-in Date", "Status"};
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -47,9 +59,6 @@ public class TenantListView extends javax.swing.JPanel {
         filterComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(
             new String[] {"All Tenants", "Active Tenants", "Recent Tenants", "To Leave"}
         ));
-        
-        // Set up search field placeholder text behavior
-        setupSearchFieldPlaceholder();
 
         // Adjust column widths (optional)
         tenantTable.getColumnModel().getColumn(0).setPreferredWidth(40);  // ID
@@ -135,11 +144,6 @@ public class TenantListView extends javax.swing.JPanel {
         }
     }
 
-    private String getRoomNumberFromId(int roomId) {
-        // TODO: Implement logic to fetch Room Number based on roomId
-        // This might involve calling RoomDAO or having data pre-joined/cached
-        return "Room" + roomId; // Placeholder
-    }
 
     private String getTenantStatus(Tenant tenant) {
         if (tenant.getLeaseEndDate() != null && tenant.getLeaseEndDate().isBefore(java.time.LocalDate.now().plusDays(7))) {
@@ -187,68 +191,214 @@ public class TenantListView extends javax.swing.JPanel {
         String searchText = getSearchText();
         String filterSelection = getSelectedFilter();
         
-        // Create a list to hold multiple filters if needed
-        List<RowFilter<DefaultTableModel, Object>> filters = new ArrayList<>();
-        
-        // Add search text filter if not empty
-        if (!searchText.isEmpty() && !searchText.equals("Search")) {
-            try {
-                // Filter based on Name column (index 1) - case insensitive
-                RowFilter<DefaultTableModel, Object> searchFilter = 
-                    RowFilter.regexFilter("(?i)" + searchText, 1);
-                filters.add(searchFilter);
-            } catch (java.util.regex.PatternSyntaxException e) {
-                // If regex is invalid, ignore this filter
-            }
+        // Don't filter if the search field contains the placeholder text "Search"
+        if (searchText.equals("Search")) {
+            searchText = "";
         }
         
-        // Add combo box selection filter if not "All Tenants"
-        if (filterSelection != null && !filterSelection.equals("All Tenants") && !filterSelection.trim().isEmpty()) {
-            if (filterSelection.equals("Recent Tenants")) {
-                // Filter for tenants who moved in within last 30 days
-                LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
-                RowFilter<DefaultTableModel, Object> dateFilter = new RowFilter<DefaultTableModel, Object>() {
-                    @Override
-                    public boolean include(Entry<? extends DefaultTableModel, ? extends Object> entry) {
-                        // Check-in Date is in column 3
-                        Object checkInDateObj = entry.getValue(3);
-                        if (checkInDateObj != null && !checkInDateObj.equals("N/A")) {
-                            try {
-                                LocalDate checkInDate = LocalDate.parse(checkInDateObj.toString());
-                                return checkInDate.isAfter(thirtyDaysAgo);
-                            } catch (Exception e) {
-                                // If date can't be parsed, include the row
-                                return true;
-                            }
-                        }
-                        return false;
+        // Create final copies of the variables for use in the inner class
+        final String finalSearchText = searchText;
+        final String finalFilterSelection = filterSelection;
+        
+        // Create a custom row filter that works with our renderers
+        RowFilter<DefaultTableModel, Object> compositeFilter = new RowFilter<DefaultTableModel, Object>() {
+            @Override
+            public boolean include(Entry<? extends DefaultTableModel, ? extends Object> entry) {
+                // First check if we should include based on search text
+                if (!finalSearchText.isEmpty()) {
+                    boolean matches = false;
+                    // Search in Name (column 1) and Room No (column 2)
+                    String name = entry.getStringValue(1).toLowerCase();
+                    String roomNo = entry.getStringValue(2).toLowerCase();
+                    
+                    if (name.contains(finalSearchText.toLowerCase()) || 
+                        roomNo.contains(finalSearchText.toLowerCase())) {
+                        matches = true;
                     }
-                };
-                filters.add(dateFilter);
-            } else if (filterSelection.equals("To Leave")) {
-                // Filter for tenants with "To Leave" status
-                RowFilter<DefaultTableModel, Object> statusFilter = 
-                    RowFilter.regexFilter("^To Leave$", 4); // Status is in column 4
-                filters.add(statusFilter);
-            } else if (filterSelection.equals("Active Tenants")) {
-                // Filter for tenants with "Active" status
-                RowFilter<DefaultTableModel, Object> activeFilter = 
-                    RowFilter.regexFilter("^Active$", 4); // Status is in column 4
-                filters.add(activeFilter);
+                    
+                    if (!matches) {
+                        return false; // No need to check combo box filter if search doesn't match
+                    }
+                }
+                
+                // Then check if we should include based on filter combo box
+                if (finalFilterSelection != null && !finalFilterSelection.equals("All Tenants") && !finalFilterSelection.trim().isEmpty()) {
+                    if (finalFilterSelection.equals("Recent Tenants")) {
+                        // Check-in Date is in column 3
+                        String checkInDateStr = entry.getStringValue(3);
+                        if (checkInDateStr.equals("N/A")) {
+                            return false;
+                        }
+                        try {
+                            LocalDate checkInDate = LocalDate.parse(checkInDateStr);
+                            LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
+                            return checkInDate.isAfter(thirtyDaysAgo);
+                        } catch (Exception e) {
+                            // If date can't be parsed, include the row
+                            return true;
+                        }
+                    } else if (finalFilterSelection.equals("To Leave")) {
+                        // Status is in column 4
+                        String status = entry.getStringValue(4).toUpperCase();
+                        return status.contains("LEAVE");
+                    } else if (finalFilterSelection.equals("Active Tenants")) {
+                        // Status is in column 4
+                        String status = entry.getStringValue(4).toUpperCase();
+                        return status.contains("ACTIVE");
+                    }
+                }
+                
+                // If we reach here, include the row
+                return true;
             }
+        };
+        
+        // Apply our custom filter
+        sorter.setRowFilter(compositeFilter);
+    }
+
+    /**
+     * Configures the tenant table with appropriate renderers and column sizes for a professional look.
+     */
+    private void setupTableAppearance() {
+        // Set column widths and renderers
+        TableColumnModel columnModel = tenantTable.getColumnModel();
+        
+        // Get the actual number of columns in the table to prevent ArrayIndexOutOfBoundsException
+        int columnCount = columnModel.getColumnCount();
+        
+        // Apply appropriate renderers for each column - only if they exist
+        // ID column - Base renderer (hidden column)
+        if (columnCount > 0) {
+            columnModel.getColumn(0).setPreferredWidth(40);
+            columnModel.getColumn(0).setCellRenderer(new com.dormhelios.util.TableRenderers.BaseRenderer());
         }
         
-        if (filters.isEmpty()) {
-            // No filters, show all rows
-            sorter.setRowFilter(null);
-        } else if (filters.size() == 1) {
-            // Only one filter
-            sorter.setRowFilter(filters.get(0));
-        } else {
-            // Combine multiple filters with AND logic
-            RowFilter<DefaultTableModel, Object> andFilter = RowFilter.andFilter(filters);
-            sorter.setRowFilter(andFilter);
+        // Name column - Base renderer
+        if (columnCount > 1) {
+            columnModel.getColumn(1).setPreferredWidth(180);
+            columnModel.getColumn(1).setCellRenderer(new com.dormhelios.util.TableRenderers.BaseRenderer());
         }
+        
+        // Room Number column - Base renderer
+        if (columnCount > 2) {
+            columnModel.getColumn(2).setPreferredWidth(80);
+            columnModel.getColumn(2).setCellRenderer(new com.dormhelios.util.TableRenderers.BaseRenderer());
+        }
+        
+        // Check-in Date column - Date renderer
+        if (columnCount > 3) {
+            columnModel.getColumn(3).setPreferredWidth(120);
+            columnModel.getColumn(3).setCellRenderer(new com.dormhelios.util.TableRenderers.DateRenderer());
+        }
+        
+        // Status column - Status renderer
+        if (columnCount > 4) {
+            columnModel.getColumn(4).setPreferredWidth(100);
+            columnModel.getColumn(4).setCellRenderer(new com.dormhelios.util.TableRenderers.StatusRenderer());
+        }
+        
+        // Adjust row height for better readability
+        tenantTable.setRowHeight(32);
+        
+        // Improve table header appearance
+        tenantTable.getTableHeader().setFont(tenantTable.getTableHeader().getFont().deriveFont(Font.BOLD));
+        tenantTable.getTableHeader().setOpaque(false);
+        
+        // Make the table selection more visible
+        tenantTable.setSelectionBackground(new Color(30, 115, 190, 80));
+        tenantTable.setSelectionForeground(Color.BLACK);
+        
+        // Remove grid lines for a cleaner look
+        tenantTable.setShowVerticalLines(false);
+        tenantTable.setShowHorizontalLines(true);
+        tenantTable.setGridColor(new Color(230, 230, 230));
+        
+        // Enable row sorting
+        tenantTable.setAutoCreateRowSorter(true);
+        
+        // Make search field look nicer
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                searchField.getBorder(),
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)));
+    }
+
+    /**
+     * Applies Tailwind-inspired styling to the TenantListView components.
+     * Call this method after initComponents() in the constructor.
+     */
+    private void applyCustomStyling() {
+        // Tailwind color palette
+        Color primary = new Color(59, 130, 246);     // blue-500
+        Color primaryLight = new Color(96, 165, 250); // blue-400
+        Color success = new Color(34, 197, 94);      // green-500 
+        Color danger = new Color(239, 68, 68);       // red-500
+        Color warning = new Color(245, 158, 11);     // amber-500
+        Color bgLight = new Color(243, 244, 246);    // gray-100
+        Color bgDark = new Color(31, 41, 55);        // gray-800
+        Color slate100 = new Color(241, 245, 249);   // slate-100
+        Color slate200 = new Color(226, 232, 240);   // slate-200
+        Color slate700 = new Color(51, 65, 85);      // slate-700
+        Color slate800 = new Color(30, 41, 59);      // slate-800
+        
+        // Background styling
+        this.setBackground(bgLight);
+        
+        // Style title 
+        jLabel1.setForeground(slate800);
+        
+        // Style the Add Tenant button
+        addTenantButton.setBackground(primary);
+        addTenantButton.setForeground(Color.WHITE);
+        addTenantButton.setFont(addTenantButton.getFont().deriveFont(Font.BOLD));
+        addTenantButton.setBorderPainted(false);
+        addTenantButton.setFocusPainted(false);
+        addTenantButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Style action buttons with different colors
+        JButton[] actionButtons = {viewTenantButton, editTenantButton, deleteTenantButton};
+        Color[] buttonColors = {success, warning, danger};
+        
+        for (int i = 0; i < actionButtons.length; i++) {
+            JButton button = actionButtons[i];
+            button.setBackground(buttonColors[i]);
+            button.setForeground(Color.WHITE);
+            button.setFont(button.getFont().deriveFont(Font.BOLD));
+            button.setBorderPainted(false);
+            button.setFocusPainted(false);
+            button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        }
+        
+        // Style the search field
+        searchField.setBackground(slate100);
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(slate200, 1, true),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        
+        // Style filter combo box
+        filterComboBox.setBackground(Color.WHITE);
+        filterComboBox.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(slate200, 1, true),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)
+        ));
+        
+        // Style the table
+        tenantTable.setRowHeight(40);
+        tenantTable.setIntercellSpacing(new Dimension(10, 0));
+        tenantTable.setShowGrid(false);
+        tenantTable.setShowHorizontalLines(true);
+        tenantTable.setGridColor(slate200);
+        
+        // Table header styling
+        tenantTable.getTableHeader().setBackground(bgLight);
+        tenantTable.getTableHeader().setForeground(slate700);
+        tenantTable.getTableHeader().setFont(tenantTable.getTableHeader().getFont().deriveFont(Font.BOLD));
+        tenantTable.getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, slate200));
+        
+        // Table selection styling
+        tenantTable.setSelectionBackground(new Color(primaryLight.getRed(), primaryLight.getGreen(), primaryLight.getBlue(), 100));
+        tenantTable.setSelectionForeground(slate800);
     }
 
     // --- Methods to Add Listeners ---
@@ -294,6 +444,10 @@ public class TenantListView extends javax.swing.JPanel {
      */
     public void addTableMouseListener(MouseAdapter listener) {
         tenantTable.addMouseListener(listener);
+    }
+
+    public javax.swing.JTextField getSearchField() {
+        return searchField;
     }
 
     // --- Utility Methods ---

@@ -3,6 +3,8 @@ package com.dormhelios.model.dao;
 import com.dormhelios.model.entity.Room;
 import java.util.List;
 import java.util.Optional;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public interface RoomDAO {
 
@@ -19,8 +21,12 @@ public interface RoomDAO {
     int countAll();
     int countByStatus(Room.RoomStatus status);
     boolean setActiveStatus(int roomId, boolean status);
+    boolean decrementSlotsAvailable(int roomId, Connection conn) throws SQLException; // Add Connection parameter and throws SQLException
+    boolean incrementSlotsAvailable(int roomId, Connection conn) throws SQLException; // Add Connection parameter and throws SQLException
 
     // --- Slots management operations ---
+    /*
     boolean decrementSlotsAvailable(int roomId);
     boolean incrementSlotsAvailable(int roomId);
+*/
 }
