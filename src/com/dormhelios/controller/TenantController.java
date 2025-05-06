@@ -31,6 +31,7 @@ public class TenantController {
     private final PaymentDAO paymentDAO;
     private final UserDAO userDAO; // Add UserDAO dependency
     private final JFrame parentFrame;
+    private final User loggedInUser; // Reference to the current logged-in user
 
     public TenantController(TenantListView listView,
             TenantFormDialog formDialog,
@@ -41,7 +42,8 @@ public class TenantController {
             EmergencyContactDAO contactDAO,
             PaymentDAO paymentDAO,
             UserDAO userDAO, // Add UserDAO to constructor
-            JFrame parentFrame) {
+            JFrame parentFrame,
+            User loggedInUser) { // Add loggedInUser to constructor
         this.listView = listView;
         this.formDialog = formDialog;
         this.detailView = detailView;
@@ -52,6 +54,7 @@ public class TenantController {
         this.paymentDAO = paymentDAO;
         this.userDAO = userDAO; // Assign UserDAO
         this.parentFrame = parentFrame;
+        this.loggedInUser = loggedInUser; // Assign loggedInUser
         attachListeners();
     }
 
@@ -121,9 +124,7 @@ public class TenantController {
         formDialog.setupForAdd();
         // Load combo models
         formDialog.setRoomComboBoxModel(roomDAO.findAll());
-        formDialog.setGuardianComboBoxModel(guardianDAO.findAll());
-        formDialog.setEmergencyContactComboBoxModel(contactDAO.findAll());
-        formDialog.setUserComboBoxModel(userDAO.findAll()); // Load users
+        formDialog.setUserComboBoxModel(userDAO.findAll(), loggedInUser); // Pass current user
         formDialog.addSaveButtonListener(e -> saveNewTenant());
         formDialog.addCancelButtonListener(e -> formDialog.closeDialog());
         formDialog.showDialog();
@@ -153,9 +154,7 @@ public class TenantController {
                         formDialog.setupForEdit(t);
                         // Load combo models
                         formDialog.setRoomComboBoxModel(roomDAO.findAll());
-                        formDialog.setGuardianComboBoxModel(guardianDAO.findAll());
-                        formDialog.setEmergencyContactComboBoxModel(contactDAO.findAll());
-                        formDialog.setUserComboBoxModel(userDAO.findAll()); // Load users
+                        formDialog.setUserComboBoxModel(userDAO.findAll(), loggedInUser); // Pass current user
                         formDialog.addSaveButtonListener(e -> saveUpdatedTenant());
                         formDialog.addCancelButtonListener(e -> formDialog.closeDialog());
                         formDialog.showDialog();
@@ -336,23 +335,19 @@ public class TenantController {
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             Tenant tenant;
             Room room;
-            Guardian guardian;
-            EmergencyContact contact;
             List<Payment> payments;
 
             @Override
             protected Void doInBackground() {
                 tenant = tenantDAO.findById(id).orElse(null);
                 room = tenant != null && tenant.getRoomId() != null ? roomDAO.findById(tenant.getRoomId()).orElse(null) : null;
-                guardian = tenant != null && tenant.getGuardianId() != null ? guardianDAO.findById(tenant.getGuardianId()).orElse(null) : null;
-                contact = tenant != null && tenant.getEmergencyContactId() != null ? contactDAO.findById(tenant.getEmergencyContactId()).orElse(null) : null;
                 payments = paymentDAO.findByTenantId(id);
                 return null;
             }
 
             @Override
             protected void done() {
-                detailView.displayTenantDetails(tenant, room, guardian, contact, payments);
+                detailView.displayTenantDetails(tenant, room, payments);
                 detailView.addCloseButtonListener(e -> detailView.closeDialog());
                 detailView.showDialog();
             }

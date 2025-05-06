@@ -83,6 +83,13 @@ public class RegisterController {
                 return;
             }
 
+            // Check if terms and conditions are accepted
+            if (!registerView.isTermsAccepted()) {
+                registerView.displayErrorMessage("You must accept the Terms and Conditions to register.");
+                clearPasswordArrays(password, confirmPassword);
+                return;
+            }
+
             if (!isValidEmail(email)) {
                  registerView.displayErrorMessage("Please enter a valid email address.");
                  clearPasswordArrays(password, confirmPassword);

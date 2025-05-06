@@ -1,7 +1,9 @@
 package com.dormhelios.view;
 
+import java.awt.Image;
 import javax.swing.JOptionPane;
 import java.awt.event.ActionListener;
+import javax.swing.ImageIcon;
 
 public class SetupView extends javax.swing.JFrame {
 
@@ -17,6 +19,11 @@ public class SetupView extends javax.swing.JFrame {
         roleComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { 
             "Tenant", "Landlord" 
         }));
+        
+        
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/resources/dormhelios-logo.png"));
+        Image scaledImage = originalIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+        iconLabel.setIcon(new ImageIcon(scaledImage));
     }
 
     /**
@@ -43,6 +50,7 @@ public class SetupView extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         contactNumberField = new javax.swing.JTextField();
+        iconLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -180,17 +188,25 @@ public class SetupView extends javax.swing.JFrame {
                 .addGap(44, 44, 44))
         );
 
+        iconLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 452, Short.MAX_VALUE)
+                .addGap(20, 20, 20)
+                .addComponent(iconLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 432, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 587, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(iconLabel)
+                .addGap(150, 150, 150))
         );
 
         pack();
@@ -311,6 +327,7 @@ public class SetupView extends javax.swing.JFrame {
     private javax.swing.JTextArea addressTextArea;
     private javax.swing.JTextField contactNumberField;
     private javax.swing.JTextField firstNameField;
+    private javax.swing.JLabel iconLabel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

@@ -205,7 +205,6 @@
     <Component class="javax.swing.JLabel" name="iconLabel">
       <Properties>
         <Property name="horizontalAlignment" type="int" value="0"/>
-        <Property name="text" type="java.lang.String" value="h"/>
       </Properties>
     </Component>
   </SubComponents>

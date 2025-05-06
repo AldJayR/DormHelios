@@ -23,15 +23,13 @@ public class TenantDAOImpl implements TenantDAO {
     private static final String FIND_BY_ROOM_ID_SQL = "SELECT * FROM TENANTS WHERE room_id = ? ORDER BY last_name, first_name";
     private static final String FIND_BY_LAST_NAME_SQL = "SELECT * FROM TENANTS WHERE last_name LIKE ? ORDER BY first_name";
     private static final String ADD_SQL = 
-        "INSERT INTO TENANTS (user_id, room_id, guardian_id, emergency_contact_id, first_name, last_name, student_number, email, phone_number, permanent_address, lease_start_date, lease_end_date, deposit_amount, deposit_status, created_at, updated_at) " +
+        "INSERT INTO TENANTS (user_id, room_id, guardian_name, emergency_contact_number, first_name, last_name, student_number, email, phone_number, permanent_address, lease_start_date, lease_end_date, deposit_amount, deposit_status, created_at, updated_at) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
     private static final String UPDATE_SQL = 
-        "UPDATE TENANTS SET user_id = ?, room_id = ?, guardian_id = ?, emergency_contact_id = ?, first_name = ?, last_name = ?, student_number = ?, email = ?, phone_number = ?, permanent_address = ?, lease_start_date = ?, lease_end_date = ?, deposit_amount = ?, deposit_status = ?, notes = ?, updated_at = NOW() " +
+        "UPDATE TENANTS SET user_id = ?, room_id = ?, guardian_name = ?, emergency_contact_number = ?, first_name = ?, last_name = ?, student_number = ?, email = ?, phone_number = ?, permanent_address = ?, lease_start_date = ?, lease_end_date = ?, deposit_amount = ?, deposit_status = ?, notes = ?, updated_at = NOW() " +
         "WHERE id = ?";
     private static final String DELETE_SQL = "DELETE FROM TENANTS WHERE id = ?";
     private static final String ASSIGN_ROOM_SQL = "UPDATE TENANTS SET room_id = ?, updated_at = NOW() WHERE id = ?";
-    private static final String ASSIGN_GUARDIAN_SQL = "UPDATE TENANTS SET guardian_id = ?, updated_at = NOW() WHERE id = ?";
-    private static final String ASSIGN_EMERGENCY_CONTACT_SQL = "UPDATE TENANTS SET emergency_contact_id = ?, updated_at = NOW() WHERE id = ?";
     private static final String ASSIGN_USER_ACCOUNT_SQL = "UPDATE TENANTS SET user_id = ?, updated_at = NOW() WHERE id = ?";
     private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM TENANTS WHERE is_active = TRUE"; // Filter active
     private static final String SET_ACTIVE_STATUS_SQL = "UPDATE TENANTS SET is_active = ?, updated_at = NOW() WHERE id = ?"; // New SQL for soft delete
@@ -141,8 +139,8 @@ public class TenantDAOImpl implements TenantDAO {
 
             pstmt.setObject(1, tenant.getUserId());
             pstmt.setObject(2, tenant.getRoomId());
-            pstmt.setObject(3, tenant.getGuardianId());
-            pstmt.setObject(4, tenant.getEmergencyContactId());
+            pstmt.setString(3, tenant.getGuardianName());
+            pstmt.setString(4, tenant.getEmergencyContactNumber());
             pstmt.setString(5, tenant.getFirstName());
             pstmt.setString(6, tenant.getLastName());
             pstmt.setString(7, tenant.getStudentIdNumber());
@@ -226,8 +224,8 @@ public class TenantDAOImpl implements TenantDAO {
 
             pstmt.setObject(1, tenant.getUserId());
             pstmt.setObject(2, tenant.getRoomId());
-            pstmt.setObject(3, tenant.getGuardianId());
-            pstmt.setObject(4, tenant.getEmergencyContactId());
+            pstmt.setString(3, tenant.getGuardianName());
+            pstmt.setString(4, tenant.getEmergencyContactNumber());
             pstmt.setString(5, tenant.getFirstName());
             pstmt.setString(6, tenant.getLastName());
             pstmt.setString(7, tenant.getStudentIdNumber());
@@ -411,15 +409,7 @@ public class TenantDAOImpl implements TenantDAO {
         }
     }
 
-    @Override
-    public boolean assignGuardianToTenant(int tenantId, Integer guardianId) {
-        return updateTenantForeignKey(ASSIGN_GUARDIAN_SQL, tenantId, guardianId);
-    }
 
-    @Override
-    public boolean assignEmergencyContactToTenant(int tenantId, Integer contactId) {
-        return updateTenantForeignKey(ASSIGN_EMERGENCY_CONTACT_SQL, tenantId, contactId);
-    }
 
     @Override
     public boolean assignUserAccountToTenant(int tenantId, Integer userId) {
@@ -433,8 +423,9 @@ public class TenantDAOImpl implements TenantDAO {
 
         tenant.setUserId((Integer) rs.getObject("user_id"));
         tenant.setRoomId((Integer) rs.getObject("room_id"));
-        tenant.setGuardianId((Integer) rs.getObject("guardian_id"));
-        tenant.setEmergencyContactId((Integer) rs.getObject("emergency_contact_id"));
+
+        tenant.setGuardianName(rs.getString("guardian_name"));
+        tenant.setEmergencyContactNumber(rs.getString("emergency_contact_number"));
 
         tenant.setFirstName(rs.getString("first_name"));
         tenant.setLastName(rs.getString("last_name"));

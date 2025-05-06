@@ -136,17 +136,10 @@
                               <Component id="fullNameValueLabel" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Component id="jSeparator2" min="-2" pref="216" max="-2" attributes="0"/>
-                          <Group type="103" alignment="0" groupAlignment="1" attributes="0">
-                              <Group type="102" attributes="0">
-                                  <Component id="fullNameLabel10" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                  <Component id="emergencyContactValueLabel" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <Group type="102" attributes="0">
-                                  <Component id="fullNameLabel8" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                  <Component id="emergencyValueLabel" min="-2" max="-2" attributes="0"/>
-                              </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="fullNameLabel10" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                              <Component id="emergencyContactValueLabel" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace min="-2" pref="17" max="-2" attributes="0"/>
@@ -196,15 +189,10 @@
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="fullNameLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="emergencyValueLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="fullNameLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="emergencyContactValueLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace pref="14" max="32767" attributes="0"/>
+                      <EmptySpace pref="36" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -282,7 +270,7 @@
             </Component>
             <Component class="javax.swing.JLabel" name="fullNameLabel6">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Guardian"/>
+                <Property name="text" type="java.lang.String" value="Guardian:"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="guardianContactValueLabel">
@@ -290,19 +278,9 @@
                 <Property name="text" type="java.lang.String" value="placeholder"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JLabel" name="fullNameLabel8">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="Emergency: "/>
-              </Properties>
-            </Component>
-            <Component class="javax.swing.JLabel" name="emergencyValueLabel">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="placeholder"/>
-              </Properties>
-            </Component>
             <Component class="javax.swing.JLabel" name="fullNameLabel10">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Contact No.:"/>
+                <Property name="text" type="java.lang.String" value="Emergency Contact No.:"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="emergencyContactValueLabel">

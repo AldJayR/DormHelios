@@ -42,6 +42,7 @@ public class RegisterView extends javax.swing.JFrame {
         confirmPasswordField = new javax.swing.JPasswordField();
         emailField = new javax.swing.JTextField();
         loginTextLabel1 = new javax.swing.JLabel();
+        termsConditionsCheckbox = new javax.swing.JCheckBox();
         iconLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -95,6 +96,13 @@ public class RegisterView extends javax.swing.JFrame {
         loginTextLabel1.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         loginTextLabel1.setText("DormHelios");
 
+        termsConditionsCheckbox.setText("I agree to the Terms and Conditions");
+        termsConditionsCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                termsConditionsCheckboxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -105,18 +113,20 @@ public class RegisterView extends javax.swing.JFrame {
                 .addGap(104, 104, 104))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(36, 36, 36)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(emailField)
-                    .addComponent(confirmPasswordField)
-                    .addComponent(jLabel3)
-                    .addComponent(passwordField)
-                    .addComponent(loginTextLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(loginLinkButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 105, Short.MAX_VALUE)
-                        .addComponent(registerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel1))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(termsConditionsCheckbox)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(emailField)
+                        .addComponent(confirmPasswordField)
+                        .addComponent(jLabel3)
+                        .addComponent(passwordField)
+                        .addComponent(loginTextLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                            .addComponent(loginLinkButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 105, Short.MAX_VALUE)
+                            .addComponent(registerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jLabel2)
+                        .addComponent(jLabel1)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -138,11 +148,13 @@ public class RegisterView extends javax.swing.JFrame {
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(confirmPasswordField, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addGap(16, 16, 16)
+                .addComponent(termsConditionsCheckbox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(registerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(loginLinkButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(145, Short.MAX_VALUE))
+                .addContainerGap(121, Short.MAX_VALUE))
         );
 
         iconLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -223,6 +235,9 @@ public class RegisterView extends javax.swing.JFrame {
         emailField.requestFocusInWindow();
     }
 
+    public boolean isTermsAccepted() {
+        return termsConditionsCheckbox.isSelected();
+    }
 
     private void registerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerButtonActionPerformed
         // TODO add your handling code here:
@@ -235,6 +250,11 @@ public class RegisterView extends javax.swing.JFrame {
     private void emailFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_emailFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_emailFieldActionPerformed
+
+    private void termsConditionsCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_termsConditionsCheckboxActionPerformed
+        // Enable or disable register button based on terms acceptance
+        registerButton.setEnabled(termsConditionsCheckbox.isSelected());
+    }//GEN-LAST:event_termsConditionsCheckboxActionPerformed
 
     /**
      * @param args the command line arguments
@@ -286,5 +306,6 @@ public class RegisterView extends javax.swing.JFrame {
     private javax.swing.JLabel loginTextLabel1;
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JButton registerButton;
+    private javax.swing.JCheckBox termsConditionsCheckbox;
     // End of variables declaration//GEN-END:variables
 }

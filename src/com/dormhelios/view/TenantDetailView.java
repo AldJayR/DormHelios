@@ -54,7 +54,7 @@ public class TenantDetailView extends javax.swing.JDialog {
         paymentHistoryTable.getColumnModel().getColumn(4).setPreferredWidth(70);  // Receipt Action
     }
 
-    public void displayTenantDetails(Tenant tenant, Room room, Guardian guardian, EmergencyContact emergencyContact, List<Payment> payments) {
+    public void displayTenantDetails(Tenant tenant, Room room, List<Payment> payments) {
         if (tenant == null) {
             // Handle error - cannot display details for null tenant
             clearView();
@@ -75,17 +75,9 @@ public class TenantDetailView extends javax.swing.JDialog {
         phoneValueLabel.setText(tenant.getPhoneNumber());
         addressValueLabel.setText(tenant.getPermanentAddress() != null ? tenant.getPermanentAddress() : "N/A");
 
-        // --- Populate Guardian/Emergency ---
-        guardianContactValueLabel.setText(guardian != null ? guardian.getName() : "N/A");
-        emergencyValueLabel.setText(emergencyContact != null ? emergencyContact.getName() : "N/A");
-        // Combine contact numbers if needed, handle nulls
-        String guardianContact = guardian != null && guardian.getPhoneNumber() != null ? " (P: " + guardian.getPhoneNumber() + ")" : "";
-        String emergencyContactInfo = emergencyContact != null && emergencyContact.getPhoneNumber() != null
-                ? (emergencyContact.getRelationship() != null ? "(Rel: " + emergencyContact.getRelationship() + ", P: " + emergencyContact.getPhoneNumber() + ")"
-                : "(P: " + emergencyContact.getPhoneNumber() + ")")
-                : "";
-        guardianContactValueLabel.setText(guardianContact); // Display contact info separately or combined
-        emergencyContactValueLabel.setText(emergencyContactInfo);
+        // --- Populate Guardian/Emergency Information directly from Tenant ---
+        guardianContactValueLabel.setText(tenant.getGuardianName() != null ? tenant.getGuardianName() : "N/A");
+        emergencyContactValueLabel.setText(tenant.getEmergencyContactNumber() != null ? tenant.getEmergencyContactNumber() : "N/A");
 
         // --- Populate Lease/Room ---
         roomNumberValueLabel.setText(room != null ? room.getRoomNumber() : "Unassigned");
@@ -141,7 +133,6 @@ public class TenantDetailView extends javax.swing.JDialog {
         phoneValueLabel.setText("");
         addressValueLabel.setText("");
         guardianContactValueLabel.setText("");
-        emergencyValueLabel.setText("");
         guardianContactValueLabel.setText("");
         emergencyContactValueLabel.setText("");
         roomNumberValueLabel.setText("");
@@ -234,8 +225,6 @@ public class TenantDetailView extends javax.swing.JDialog {
         jSeparator3 = new javax.swing.JSeparator();
         fullNameLabel6 = new javax.swing.JLabel();
         guardianContactValueLabel = new javax.swing.JLabel();
-        fullNameLabel8 = new javax.swing.JLabel();
-        emergencyValueLabel = new javax.swing.JLabel();
         fullNameLabel10 = new javax.swing.JLabel();
         emergencyContactValueLabel = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
@@ -303,15 +292,11 @@ public class TenantDetailView extends javax.swing.JDialog {
         jLabel3.setFont(new java.awt.Font("Segoe UI Semibold", 0, 14)); // NOI18N
         jLabel3.setText("Guardian & Emergency Contact");
 
-        fullNameLabel6.setText("Guardian");
+        fullNameLabel6.setText("Guardian:");
 
         guardianContactValueLabel.setText("placeholder");
 
-        fullNameLabel8.setText("Emergency: ");
-
-        emergencyValueLabel.setText("placeholder");
-
-        fullNameLabel10.setText("Contact No.:");
+        fullNameLabel10.setText("Emergency Contact No.:");
 
         emergencyContactValueLabel.setText("placeholder");
 
@@ -357,15 +342,10 @@ public class TenantDetailView extends javax.swing.JDialog {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(fullNameValueLabel))
                     .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(personalContactPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addGroup(personalContactPanelLayout.createSequentialGroup()
-                            .addComponent(fullNameLabel10)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(emergencyContactValueLabel))
-                        .addGroup(personalContactPanelLayout.createSequentialGroup()
-                            .addComponent(fullNameLabel8)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(emergencyValueLabel))))
+                    .addGroup(personalContactPanelLayout.createSequentialGroup()
+                        .addComponent(fullNameLabel10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(emergencyContactValueLabel)))
                 .addGap(17, 17, 17))
         );
         personalContactPanelLayout.setVerticalGroup(
@@ -405,13 +385,9 @@ public class TenantDetailView extends javax.swing.JDialog {
                     .addComponent(guardianContactValueLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(personalContactPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(fullNameLabel8)
-                    .addComponent(emergencyValueLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(personalContactPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fullNameLabel10)
                     .addComponent(emergencyContactValueLabel))
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addContainerGap(36, Short.MAX_VALUE))
         );
 
         jPanel1.add(personalContactPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(18, 70, -1, -1));
@@ -649,12 +625,10 @@ public class TenantDetailView extends javax.swing.JDialog {
     private javax.swing.JLabel emailLabel1;
     private javax.swing.JLabel emailValueLabel;
     private javax.swing.JLabel emergencyContactValueLabel;
-    private javax.swing.JLabel emergencyValueLabel;
     private javax.swing.JLabel fullNameLabel;
     private javax.swing.JLabel fullNameLabel10;
     private javax.swing.JLabel fullNameLabel12;
     private javax.swing.JLabel fullNameLabel6;
-    private javax.swing.JLabel fullNameLabel8;
     private javax.swing.JLabel fullNameValueLabel;
     private javax.swing.JLabel guardianContactValueLabel;
     private javax.swing.JLabel jLabel2;

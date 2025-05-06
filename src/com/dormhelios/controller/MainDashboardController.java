@@ -212,7 +212,8 @@ public class MainDashboardController {
                 emergencyContactDAO,
                 paymentDAO,
                 userDAO,      // Pass UserDAO
-                mainView
+                mainView,
+                loggedInUser  // Pass the logged-in user
             );
             tenantController.loadInitialData();
             mainView.addContentPanel(tenantListView, MainDashboardView.TENANTS_PANEL);

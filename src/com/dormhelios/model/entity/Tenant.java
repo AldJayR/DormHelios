@@ -17,8 +17,8 @@ public class Tenant {
     private int tenantId;
     private Integer userId; // FK to Users (Nullable) - For tenant login
     private Integer roomId; // FK to Rooms (Nullable) - Current room assignment
-    private Integer guardianId; // FK to Guardians (Nullable)
-    private Integer emergencyContactId; // FK to EmergencyContacts (Nullable)
+    private String guardianName; // Name of guardian (Nullable)
+    private String emergencyContactNumber; // Emergency contact phone number (Nullable)
     private String firstName;
     private String lastName;
     private String studentIdNumber; // Nullable
@@ -67,20 +67,20 @@ public class Tenant {
         this.roomId = roomId;
     }
 
-    public Integer getGuardianId() {
-        return guardianId;
+    public String getGuardianName() {
+        return guardianName;
     }
 
-    public void setGuardianId(Integer guardianId) {
-        this.guardianId = guardianId;
+    public void setGuardianName(String guardianName) {
+        this.guardianName = guardianName;
     }
 
-    public Integer getEmergencyContactId() {
-        return emergencyContactId;
+    public String getEmergencyContactNumber() {
+        return emergencyContactNumber;
     }
 
-    public void setEmergencyContactId(Integer emergencyContactId) {
-        this.emergencyContactId = emergencyContactId;
+    public void setEmergencyContactNumber(String emergencyContactNumber) {
+        this.emergencyContactNumber = emergencyContactNumber;
     }
 
     public String getFirstName() {

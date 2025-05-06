@@ -10,12 +10,10 @@
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/Main.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/controller/SetupController.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/model/dao/UserDAO.java</file>
-            <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/AdminDashboardPanel.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/RoomFormDialog.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/ReceiptDialog.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/model/dao/UserDAOImpl.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/util/QRCodeGenerator.java</file>
-            <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/AdminDashboardView.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/model/entity/Tenant.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/PaymentLoggingDialog.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/controller/TenantController.java</file>
@@ -36,6 +34,7 @@
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/RoomListView.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/TenantFormDialog.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/AdminCreateAccountDialog.java</file>
+            <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/SetupView.java</file>
         </group>
     </open-files>
 </project-private>

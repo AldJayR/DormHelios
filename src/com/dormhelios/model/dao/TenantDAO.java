@@ -41,9 +41,5 @@ public interface TenantDAO {
 
     boolean assignTenantToRoom(int tenantId, Integer roomId); // Helper for assignment
 
-    boolean assignGuardianToTenant(int tenantId, Integer guardianId);
-
-    boolean assignEmergencyContactToTenant(int tenantId, Integer contactId);
-
     boolean assignUserAccountToTenant(int tenantId, Integer userId);
 }
