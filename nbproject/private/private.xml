@@ -24,10 +24,12 @@
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/util/SMSService.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/PaymentListView.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/model/dao/TenantDAOImpl.java</file>
+            <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/model/entity/TenantWithRoom.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/TenantListView.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/LoginView.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/RegisterView.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/controller/ReminderController.java</file>
+            <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/TenantDetailView.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/controller/TenantDashboardController.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/view/SendReminderDialog.java</file>
             <file>file:/C:/Users/ASUS/Documents/NetBeansProjects/DormHelios/src/com/dormhelios/controller/RoomController.java</file>

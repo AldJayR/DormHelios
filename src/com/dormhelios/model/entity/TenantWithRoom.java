@@ -29,8 +29,8 @@ public class TenantWithRoom extends Tenant {
         this.setUpdatedAt(tenant.getUpdatedAt());
         this.setActive(tenant.isActive());
         this.setRoomId(tenant.getRoomId());
-        this.setGuardianId(tenant.getGuardianId());
-        this.setEmergencyContactId(tenant.getEmergencyContactId());
+        this.setGuardianName(tenant.getGuardianName());
+        this.setEmergencyContactNumber(tenant.getEmergencyContactNumber());
         this.setUserId(tenant.getUserId());
         
         // Set the additional room number field

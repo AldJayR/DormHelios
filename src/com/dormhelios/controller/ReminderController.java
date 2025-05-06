@@ -123,74 +123,39 @@ public class ReminderController {
             return;
         }
         
-        // Check if we have a valid phone number
+        // Check if we have a valid tenant with phone number
         if (selectedTenant == null || selectedTenant.getPhoneNumber() == null || 
                 selectedTenant.getPhoneNumber().trim().isEmpty()) {
             reminderDialog.displayErrorMessage("The selected tenant has no valid phone number");
             return;
         }
         
-        // Check if SMS service is enabled
-        if (!smsService.isEnabled()) {
-            LOGGER.warning("SMS service is disabled. Showing simulation message instead.");
-            // Simulate success for testing when SMS service is disabled
-            reminderDialog.displaySuccessMessage("SMS service is currently disabled. " +
-                    "In actual operation, the message would be sent to " + 
-                    selectedTenant.getPhoneNumber());
-            reminderDialog.setSaved(true);
-            reminderDialog.closeDialog();
-            return;
-        }
-        
         // Disable send button to prevent multiple clicks
         reminderDialog.disableSendButton();
         
-        // Send SMS in background to keep UI responsive
-        new SwingWorker<SMSService.SMSResult, Void>() {
-            @Override
-            protected SMSService.SMSResult doInBackground() throws Exception {
-                LOGGER.info("Sending SMS reminder to tenant: " + selectedTenant.getFirstName() + 
-                        " " + selectedTenant.getLastName() + " (" + selectedTenant.getPhoneNumber() + ")");
-                return smsService.sendSMS(selectedTenant.getPhoneNumber(), message);
-            }
+        try {
+            // Get tenant info for the simulation message
+            String tenantName = selectedTenant.getFirstName() + " " + selectedTenant.getLastName();
+            String phoneNumber = selectedTenant.getPhoneNumber();
             
-            @Override
-            protected void done() {
-                try {
-                    SMSService.SMSResult result = get();
-                    
-                    // Re-enable send button
-                    reminderDialog.enableSendButton();
-                    
-                    if (result.isSuccess()) {
-                        // Log the successful SMS
-                        LOGGER.info("SMS reminder sent successfully to " + selectedTenant.getPhoneNumber() +
-                                ", Message ID: " + result.getMessageId());
-                        
-                        // Show success message
-                        reminderDialog.displaySuccessMessage("Payment reminder has been sent successfully!");
-                        
-                        // Close the dialog
-                        reminderDialog.setSaved(true);
-                        reminderDialog.closeDialog();
-                    } else {
-                        // Log the failure
-                        LOGGER.warning("Failed to send SMS reminder: " + result.getMessage());
-                        
-                        // Show error message
-                        reminderDialog.displayErrorMessage("Failed to send reminder: " + result.getMessage());
-                    }
-                } catch (Exception ex) {
-                    LOGGER.log(Level.SEVERE, "Error sending SMS reminder", ex);
-                    
-                    // Re-enable send button
-                    reminderDialog.enableSendButton();
-                    
-                    // Show error message
-                    reminderDialog.displayErrorMessage("Error sending reminder: " + ex.getMessage());
-                }
+            // Use our simulated SMS sender instead of the actual SMS service
+            boolean result = reminderDialog.simulateSendSMS(tenantName, phoneNumber, message);
+            
+            // Always succeeds in simulation mode
+            if (result) {
+                LOGGER.info("Simulated SMS reminder sent to " + tenantName + " (" + phoneNumber + ")");
+                
+                // Set the dialog as saved and close it
+                reminderDialog.setSaved(true);
+                reminderDialog.closeDialog();
             }
-        }.execute();
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error in SMS reminder simulation", ex);
+            reminderDialog.displayErrorMessage("Error: " + ex.getMessage());
+        } finally {
+            // Always re-enable the send button
+            reminderDialog.enableSendButton();
+        }
     }
     
     /**

@@ -92,7 +92,18 @@ public class TenantFormDialog extends javax.swing.JDialog {
             return null;
         }
 
-        Tenant tenant = (currentTenant != null) ? currentTenant : new Tenant(); // Use existing if editing
+        // Create a new tenant if adding, or use the existing one if editing
+        Tenant tenant;
+        if (currentTenant != null) {
+            // When editing, use the existing tenant with its ID preserved
+            tenant = currentTenant;
+            // Log to verify tenant ID is preserved
+            System.out.println("Editing existing tenant with ID: " + tenant.getTenantId());
+        } else {
+            // When adding, create a new tenant
+            tenant = new Tenant();
+            System.out.println("Creating new tenant");
+        }
 
         tenant.setFirstName(firstNameField.getText().trim());
         tenant.setLastName(lastNameField.getText().trim());
@@ -398,8 +409,11 @@ public class TenantFormDialog extends javax.swing.JDialog {
         setPreferredSize(new java.awt.Dimension(466, 700));
         setResizable(false);
 
+        jScrollPane2.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        jScrollPane2.setPreferredSize(new java.awt.Dimension(427, 900));
+
         mainPanel.setBackground(new java.awt.Color(255, 255, 255));
-        mainPanel.setPreferredSize(new java.awt.Dimension(415, 866));
+        mainPanel.setPreferredSize(new java.awt.Dimension(415, 1050));
         mainPanel.setRequestFocusEnabled(false);
 
         titleLabel.setFont(new java.awt.Font("Segoe UI Semibold", 0, 23)); // NOI18N

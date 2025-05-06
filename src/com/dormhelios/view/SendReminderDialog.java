@@ -179,6 +179,37 @@ public class SendReminderDialog extends javax.swing.JDialog {
         sendButton1.setEnabled(true);
     }
     
+    /**
+     * Simulates sending an SMS by displaying a success message dialog.
+     * This is a placeholder for actual SMS API implementation.
+     * 
+     * @param tenantName The name of the tenant
+     * @param phoneNumber The phone number being sent to
+     * @param message The message content
+     * @return Always returns true (simulating successful send)
+     */
+    public boolean simulateSendSMS(String tenantName, String phoneNumber, String message) {
+        String confirmationMessage = String.format(
+            "SMS Reminder Sent (Simulation)\n\nTo: %s (%s)\nMessage: %s", 
+            tenantName, 
+            phoneNumber,
+            message
+        );
+        
+        JOptionPane.showMessageDialog(
+            this, 
+            confirmationMessage,
+            "Reminder Sent", 
+            JOptionPane.INFORMATION_MESSAGE
+        );
+        
+        // Log the simulated SMS
+        LOGGER.info("Simulated SMS sent to " + tenantName + " at " + phoneNumber);
+        
+        // Always return success in simulation mode
+        return true;
+    }
+    
     // --- Helper Class for ComboBox Items ---
     private static class ComboBoxItem<T> {
         private final T id;
