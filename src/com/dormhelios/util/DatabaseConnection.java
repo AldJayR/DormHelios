@@ -9,7 +9,6 @@ import java.io.IOException; // For file loading errors
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 public class DatabaseConnection {
 
     private static final Logger LOGGER = Logger.getLogger(DatabaseConnection.class.getName());
@@ -17,9 +16,14 @@ public class DatabaseConnection {
 
     // --- Configuration Variables ---
     // Load these from the properties file for better practice
+    
     private static String dbUrl = "jdbc:mysql://localhost:3306/dormhelios_db?useSSL=false&serverTimezone=UTC"; // Default URL
     private static String dbUser = "root"; // Default User
     private static String dbPassword = ""; // Default Password
+     
+   
+
+
     private static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
 
     // --- Standard JDBC Driver Loading (Without Pooling) ---

@@ -17,22 +17,22 @@ public class PaymentDAOImpl implements PaymentDAO {
     private static final Logger LOGGER = Logger.getLogger(PaymentDAOImpl.class.getName());
 
     // --- SQL Constants ---
-    private static final String FIND_BY_ID_SQL = "SELECT * FROM PAYMENTS WHERE payment_id = ?";
-    private static final String FIND_ALL_SQL = "SELECT * FROM PAYMENTS ORDER BY payment_date DESC, created_at DESC";
-    private static final String FIND_BY_TENANT_ID_SQL = "SELECT * FROM PAYMENTS WHERE tenant_id = ? ORDER BY payment_date DESC, created_at DESC";
-    private static final String FIND_BY_DATE_RANGE_SQL = "SELECT * FROM PAYMENTS WHERE payment_date BETWEEN ? AND ? ORDER BY payment_date DESC, tenant_id";
-    private static final String FIND_BY_USER_ID_SQL = "SELECT * FROM PAYMENTS WHERE user_id = ? ORDER BY created_at DESC";
-    private static final String ADD_SQL = "INSERT INTO PAYMENTS (tenant_id, user_id, payment_date, amount, payment_method, period_covered_start, period_covered_end, receipt_reference, qr_code_data, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
-    private static final String UPDATE_SQL = "UPDATE PAYMENTS SET tenant_id = ?, user_id = ?, payment_date = ?, amount = ?, payment_method = ?, period_covered_start = ?, period_covered_end = ?, receipt_reference = ?, qr_code_data = ?, notes = ? WHERE payment_id = ?"; // Note: created_at usually not updated
-    private static final String DELETE_SQL = "DELETE FROM PAYMENTS WHERE payment_id = ?";
-    private static final String SUM_AMOUNT_BY_DATE_RANGE_SQL = "SELECT SUM(amount) FROM PAYMENTS WHERE payment_date BETWEEN ? AND ?"; // New SQL
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM payments WHERE payment_id = ?";
+    private static final String FIND_ALL_SQL = "SELECT * FROM payments ORDER BY payment_date DESC, created_at DESC";
+    private static final String FIND_BY_TENANT_ID_SQL = "SELECT * FROM payments WHERE tenant_id = ? ORDER BY payment_date DESC, created_at DESC";
+    private static final String FIND_BY_DATE_RANGE_SQL = "SELECT * FROM payments WHERE payment_date BETWEEN ? AND ? ORDER BY payment_date DESC, tenant_id";
+    private static final String FIND_BY_USER_ID_SQL = "SELECT * FROM payments WHERE user_id = ? ORDER BY created_at DESC";
+    private static final String ADD_SQL = "INSERT INTO payments (tenant_id, user_id, payment_date, amount, payment_method, period_covered_start, period_covered_end, receipt_reference, qr_code_data, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+    private static final String UPDATE_SQL = "UPDATE payments SET tenant_id = ?, user_id = ?, payment_date = ?, amount = ?, payment_method = ?, period_covered_start = ?, period_covered_end = ?, receipt_reference = ?, qr_code_data = ?, notes = ? WHERE payment_id = ?"; // Note: created_at usually not updated
+    private static final String DELETE_SQL = "DELETE FROM payments WHERE payment_id = ?";
+    private static final String SUM_AMOUNT_BY_DATE_RANGE_SQL = "SELECT SUM(amount) FROM payments WHERE payment_date BETWEEN ? AND ?"; // New SQL
 
     // Overdue payments SQL - Tenants who haven't paid in current month
     private static final String FIND_OVERDUE_PAYMENTS_SQL = 
         "SELECT t.id, t.first_name, t.last_name, r.room_number, MAX(p.payment_date) as last_payment_date " +
-        "FROM TENANTS t " +
-        "LEFT JOIN ROOMS r ON t.room_id = r.id " +
-        "LEFT JOIN PAYMENTS p ON t.id = p.tenant_id " +
+        "FROM tenants t " +
+        "LEFT JOIN rooms r ON t.room_id = r.id " +
+        "LEFT JOIN payments p ON t.id = p.tenant_id " +
         "WHERE t.is_active = TRUE " +
         "GROUP BY t.id, t.first_name, t.last_name, r.room_number " +
         "HAVING MAX(p.payment_date) < ? OR MAX(p.payment_date) IS NULL " +
@@ -41,9 +41,9 @@ public class PaymentDAOImpl implements PaymentDAO {
     // Recent payments SQL for dashboard
     private static final String FIND_RECENT_PAYMENTS_SQL = 
         "SELECT p.*, t.first_name, t.last_name, r.room_number " +
-        "FROM PAYMENTS p " +
-        "JOIN TENANTS t ON p.tenant_id = t.id " +
-        "LEFT JOIN ROOMS r ON t.room_id = r.id " +
+        "FROM payments p " +
+        "JOIN tenants t ON p.tenant_id = t.id " +
+        "LEFT JOIN rooms r ON t.room_id = r.id " +
         "WHERE p.payment_date BETWEEN ? AND ? " +
         "ORDER BY p.payment_date DESC, p.created_at DESC " +
         "LIMIT ?";

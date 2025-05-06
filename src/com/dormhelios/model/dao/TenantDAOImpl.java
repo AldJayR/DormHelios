@@ -18,24 +18,24 @@ public class TenantDAOImpl implements TenantDAO {
     private static final Logger LOGGER = Logger.getLogger(TenantDAOImpl.class.getName());
 
     // --- SQL Constants ---
-    private static final String FIND_BY_ID_SQL = "SELECT * FROM TENANTS WHERE id = ?";
-    private static final String FIND_ALL_SQL = "SELECT * FROM TENANTS ORDER BY last_name, first_name";
-    private static final String FIND_BY_ROOM_ID_SQL = "SELECT * FROM TENANTS WHERE room_id = ? ORDER BY last_name, first_name";
-    private static final String FIND_BY_LAST_NAME_SQL = "SELECT * FROM TENANTS WHERE last_name LIKE ? ORDER BY first_name";
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM tenants WHERE id = ?";
+    private static final String FIND_ALL_SQL = "SELECT * FROM tenants ORDER BY last_name, first_name";
+    private static final String FIND_BY_ROOM_ID_SQL = "SELECT * FROM tenants WHERE room_id = ? ORDER BY last_name, first_name";
+    private static final String FIND_BY_LAST_NAME_SQL = "SELECT * FROM tenants WHERE last_name LIKE ? ORDER BY first_name";
     private static final String ADD_SQL = 
-        "INSERT INTO TENANTS (user_id, room_id, guardian_name, emergency_contact_number, first_name, last_name, student_number, email, phone_number, permanent_address, lease_start_date, lease_end_date, deposit_amount, deposit_status, created_at, updated_at) " +
+        "INSERT INTO tenants (user_id, room_id, guardian_name, emergency_contact_number, first_name, last_name, student_number, email, phone_number, permanent_address, lease_start_date, lease_end_date, deposit_amount, deposit_status, created_at, updated_at) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
     private static final String UPDATE_SQL = 
-        "UPDATE TENANTS SET user_id = ?, room_id = ?, guardian_name = ?, emergency_contact_number = ?, first_name = ?, last_name = ?, student_number = ?, email = ?, phone_number = ?, permanent_address = ?, lease_start_date = ?, lease_end_date = ?, deposit_amount = ?, deposit_status = ?, notes = ?, updated_at = NOW() " +
+        "UPDATE tenants SET user_id = ?, room_id = ?, guardian_name = ?, emergency_contact_number = ?, first_name = ?, last_name = ?, student_number = ?, email = ?, phone_number = ?, permanent_address = ?, lease_start_date = ?, lease_end_date = ?, deposit_amount = ?, deposit_status = ?, notes = ?, updated_at = NOW() " +
         "WHERE id = ?";
-    private static final String DELETE_SQL = "DELETE FROM TENANTS WHERE id = ?";
-    private static final String ASSIGN_ROOM_SQL = "UPDATE TENANTS SET room_id = ?, updated_at = NOW() WHERE id = ?";
-    private static final String ASSIGN_USER_ACCOUNT_SQL = "UPDATE TENANTS SET user_id = ?, updated_at = NOW() WHERE id = ?";
-    private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM TENANTS WHERE is_active = TRUE"; // Filter active
-    private static final String SET_ACTIVE_STATUS_SQL = "UPDATE TENANTS SET is_active = ?, updated_at = NOW() WHERE id = ?"; // New SQL for soft delete
+    private static final String DELETE_SQL = "DELETE FROM tenants WHERE id = ?";
+    private static final String ASSIGN_ROOM_SQL = "UPDATE tenants SET room_id = ?, updated_at = NOW() WHERE id = ?";
+    private static final String ASSIGN_USER_ACCOUNT_SQL = "UPDATE tenants SET user_id = ?, updated_at = NOW() WHERE id = ?";
+    private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM tenants WHERE is_active = TRUE"; // Filter active
+    private static final String SET_ACTIVE_STATUS_SQL = "UPDATE tenants SET is_active = ?, updated_at = NOW() WHERE id = ?"; // New SQL for soft delete
     private static final String FIND_ALL_WITH_ROOM_NUMBERS_SQL = 
-        "SELECT t.*, r.room_number FROM TENANTS t " +
-        "LEFT JOIN ROOMS r ON t.room_id = r.id " +
+        "SELECT t.*, r.room_number FROM tenants t " +
+        "LEFT JOIN rooms r ON t.room_id = r.id " +
         "WHERE t.is_active = 1 " +
         "ORDER BY t.last_name, t.first_name";
 
@@ -297,7 +297,7 @@ public class TenantDAOImpl implements TenantDAO {
 
     @Override
     public int countNewTenantsByDateRange(LocalDate startDate, LocalDate endDate) {
-        final String sql = "SELECT COUNT(*) FROM TENANTS WHERE created_at BETWEEN ? AND ? AND is_active = TRUE";
+        final String sql = "SELECT COUNT(*) FROM tenants WHERE created_at BETWEEN ? AND ? AND is_active = TRUE";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             

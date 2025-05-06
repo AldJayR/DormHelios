@@ -16,18 +16,18 @@ public class RoomDAOImpl implements RoomDAO {
     private static final Logger LOGGER = Logger.getLogger(RoomDAOImpl.class.getName());
 
     // --- SQL Constants ---
-    private static final String FIND_BY_ID_SQL = "SELECT * FROM ROOMS WHERE id = ?";
-    private static final String FIND_BY_ROOM_NUMBER_SQL = "SELECT * FROM ROOMS WHERE room_number = ?";
-    private static final String FIND_ALL_SQL = "SELECT * FROM ROOMS WHERE is_active = 1 ORDER BY room_number";
-    private static final String FIND_BY_STATUS_SQL = "SELECT * FROM ROOMS WHERE status = ? AND is_active = 1 ORDER BY room_number";
-    private static final String ADD_SQL = "INSERT INTO ROOMS (room_number, capacity, slots_available, monthly_rate, status, description, created_at, updated_at, is_active) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), 1)";
-    private static final String UPDATE_SQL = "UPDATE ROOMS SET room_number = ?, capacity = ?, slots_available = ?, monthly_rate = ?, status = ?, description = ?, updated_at = NOW() WHERE id = ?";
-    private static final String DELETE_SQL = "DELETE FROM ROOMS WHERE id = ?";
-    private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM ROOMS WHERE is_active = 1"; // Updated SQL
-    private static final String COUNT_BY_STATUS_SQL = "SELECT COUNT(*) FROM ROOMS WHERE status = ? AND is_active = 1"; // Updated SQL
-    private static final String UPDATE_SLOTS_AVAILABLE_SQL = "UPDATE ROOMS SET slots_available = ?, updated_at = NOW() WHERE id = ?";
-    private static final String DECREMENT_SLOTS_AVAILABLE_SQL = "UPDATE ROOMS SET slots_available = slots_available - 1, updated_at = NOW() WHERE id = ? AND slots_available > 0";
-    private static final String INCREMENT_SLOTS_AVAILABLE_SQL = "UPDATE ROOMS SET slots_available = slots_available + 1, updated_at = NOW() WHERE id = ? AND slots_available < capacity";
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM rooms WHERE id = ?";
+    private static final String FIND_BY_ROOM_NUMBER_SQL = "SELECT * FROM rooms WHERE room_number = ?";
+    private static final String FIND_ALL_SQL = "SELECT * FROM rooms WHERE is_active = 1 ORDER BY room_number";
+    private static final String FIND_BY_STATUS_SQL = "SELECT * FROM rooms WHERE status = ? AND is_active = 1 ORDER BY room_number";
+    private static final String ADD_SQL = "INSERT INTO rooms (room_number, capacity, slots_available, monthly_rate, status, description, created_at, updated_at, is_active) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), 1)";
+    private static final String UPDATE_SQL = "UPDATE rooms SET room_number = ?, capacity = ?, slots_available = ?, monthly_rate = ?, status = ?, description = ?, updated_at = NOW() WHERE id = ?";
+    private static final String DELETE_SQL = "DELETE FROM rooms WHERE id = ?";
+    private static final String COUNT_ALL_SQL = "SELECT COUNT(*) FROM rooms WHERE is_active = 1"; // Updated SQL
+    private static final String COUNT_BY_STATUS_SQL = "SELECT COUNT(*) FROM rooms WHERE status = ? AND is_active = 1"; // Updated SQL
+    private static final String UPDATE_SLOTS_AVAILABLE_SQL = "UPDATE rooms SET slots_available = ?, updated_at = NOW() WHERE id = ?";
+    private static final String DECREMENT_SLOTS_AVAILABLE_SQL = "UPDATE rooms SET slots_available = slots_available - 1, updated_at = NOW() WHERE id = ? AND slots_available > 0";
+    private static final String INCREMENT_SLOTS_AVAILABLE_SQL = "UPDATE rooms SET slots_available = slots_available + 1, updated_at = NOW() WHERE id = ? AND slots_available < capacity";
 
     @Override
     public Optional<Room> findById(int roomId) {
@@ -243,7 +243,7 @@ public class RoomDAOImpl implements RoomDAO {
     public boolean setActiveStatus(int roomId, boolean status)
     {
         // SQL for updating just the is_active column
-        String updateStatusSQL = "UPDATE ROOMS SET is_active = ?, updated_at = NOW() WHERE id = ?";
+        String updateStatusSQL = "UPDATE rooms SET is_active = ?, updated_at = NOW() WHERE id = ?";
         
         try (Connection conn = DatabaseConnection.getConnection(); 
              PreparedStatement pstmt = conn.prepareStatement(updateStatusSQL)) {
@@ -266,7 +266,7 @@ public class RoomDAOImpl implements RoomDAO {
     
     @Override
     public boolean decrementSlotsAvailable(int roomId, Connection conn) throws SQLException { // Add conn parameter, throws SQLException
-        final String sql = "UPDATE ROOMS SET slots_available = slots_available - 1, updated_at = NOW() " +
+        final String sql = "UPDATE rooms SET slots_available = slots_available - 1, updated_at = NOW() " +
                           "WHERE id = ? AND slots_available > 0";
 
         // Use the provided connection, DO NOT get/close connection here
@@ -292,7 +292,7 @@ public class RoomDAOImpl implements RoomDAO {
 
     @Override
     public boolean incrementSlotsAvailable(int roomId, Connection conn) throws SQLException { // Add conn parameter, throws SQLException
-        final String sql = "UPDATE ROOMS SET slots_available = slots_available + 1, updated_at = NOW() " +
+        final String sql = "UPDATE rooms SET slots_available = slots_available + 1, updated_at = NOW() " +
                           "WHERE id = ? AND slots_available < capacity";
 
         // Use the provided connection, DO NOT get/close connection here

@@ -14,21 +14,21 @@ public class UserDAOImpl implements UserDAO {
     private static final Logger LOGGER = Logger.getLogger(UserDAOImpl.class.getName());
 
     // SQL Statements (Use constants)
-    private static final String FIND_BY_USERNAME_SQL = "SELECT * FROM USERS WHERE username = ?";
-    private static final String FIND_BY_EMAIL_SQL = "SELECT * FROM USERS WHERE email = ?";
-    private static final String FIND_BY_ID_SQL = "SELECT * FROM USERS WHERE id = ?";
-    private static final String FIND_ALL_SQL = "SELECT * FROM USERS ORDER BY first_name";
-    private static final String ADD_USER_SQL = "INSERT INTO USERS (username, password_hash, full_name, role, email, phone_number, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
-    private static final String UPDATE_USER_SQL = "UPDATE USERS SET password_hash = ?, first_name = ?, surname = ?, role = ?, email = ?, phone_number = ?, is_active = ?, updated_at = NOW() WHERE id = ?";
+    private static final String FIND_BY_USERNAME_SQL = "SELECT * FROM users WHERE username = ?";
+    private static final String FIND_BY_EMAIL_SQL = "SELECT * FROM users WHERE email = ?";
+    private static final String FIND_BY_ID_SQL = "SELECT * FROM users WHERE id = ?";
+    private static final String FIND_ALL_SQL = "SELECT * FROM users ORDER BY first_name";
+    private static final String ADD_USER_SQL = "INSERT INTO users (username, password_hash, full_name, role, email, phone_number, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+    private static final String UPDATE_USER_SQL = "UPDATE users SET password_hash = ?, first_name = ?, surname = ?, role = ?, email = ?, phone_number = ?, is_active = ?, updated_at = NOW() WHERE id = ?";
     private static final String REGISTER_USER_SQL = """
-                                                    INSERT INTO USERS (email, password_hash, is_active, created_at, updated_at)
+                                                    INSERT INTO users (email, password_hash, is_active, created_at, updated_at)
                                                     VALUES (?, ?, ?, NOW(), NOW())
                                                     """;
     private static final String ADMIN_ADD_USER_SQL = """
-                                                    INSERT INTO USERS (email, password_hash, role, created_at, updated_ at)
+                                                    INSERT INTO users (email, password_hash, role, created_at, updated_ at)
                                                     VALUES (?, ?, ?, NOW(), NOW())
                                                     """;
-    private static final String DELETE_USER_SQL = "DELETE FROM USERS WHERE id = ?";
+    private static final String DELETE_USER_SQL = "DELETE FROM users WHERE id = ?";
     // private static final String SET_ACTIVE_SQL = "UPDATE USERS SET is_active = ?, updated_at = NOW() WHERE user_id = ?"; // For soft delete
 
     @Override
