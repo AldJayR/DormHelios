@@ -12,9 +12,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+/*
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+*/
 
 /**
  * Utility class for sending SMS messages via the Semaphore.co SMS Gateway API.
@@ -171,9 +173,10 @@ public class SMSService {
             HttpURLConnection conn = null;
             try {
                 // Create JSON payload
+                /*
                 JSONObject jsonPayload = new JSONObject(params);
                 String requestBody = jsonPayload.toJSONString();
-                LOGGER.fine("Sending SMS with payload: " + requestBody);
+                LOGGER.fine("Sending SMS with payload: " + requestBody);*/
                 
                 // Setup connection
                 URL url = new URL(API_BASE_URL);
@@ -185,8 +188,8 @@ public class SMSService {
                 
                 // Send request
                 try (OutputStream os = conn.getOutputStream()) {
-                    byte[] input = requestBody.getBytes(StandardCharsets.UTF_8);
-                    os.write(input, 0, input.length);
+                    //byte[] input = requestBody.getBytes(StandardCharsets.UTF_8);
+                    //os.write(input, 0, input.length);
                 }
                 
                 // Handle response
@@ -204,6 +207,7 @@ public class SMSService {
                         }
                         
                         // Parse response JSON
+                        /*
                         JSONParser parser = new JSONParser();
                         JSONObject jsonResponse = (JSONObject) parser.parse(response.toString());
                         String messageId = jsonResponse.containsKey("message_id") ? 
@@ -213,7 +217,7 @@ public class SMSService {
                         return new SMSResult(true, "Message sent successfully", messageId);
                     } catch (ParseException e) {
                         LOGGER.log(Level.WARNING, "Error parsing SMS API response", e);
-                        return new SMSResult(false, "Error parsing API response: " + e.getMessage(), null);
+                        return new SMSResult(false, "Error parsing API response: " + e.getMessage(), null);*/
                     }
                 } else {
                     // Handle error response
