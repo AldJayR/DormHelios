@@ -45,6 +45,8 @@ public interface UserDAO {
      */
     int addUser(User user); // Return generated ID
 
+    int addUserByAdmin(User user);
+
     /**
      * Updates an existing user's details in the database. Assumes
      * user.getUserId() is set and valid.

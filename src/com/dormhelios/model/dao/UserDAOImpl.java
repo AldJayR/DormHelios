@@ -24,6 +24,10 @@ public class UserDAOImpl implements UserDAO {
                                                     INSERT INTO USERS (email, password_hash, is_active, created_at, updated_at)
                                                     VALUES (?, ?, ?, NOW(), NOW())
                                                     """;
+    private static final String ADMIN_ADD_USER_SQL = """
+                                                    INSERT INTO USERS (email, password_hash, role, created_at, updated_ at)
+                                                    VALUES (?, ?, ?, NOW(), NOW())
+                                                    """;
     private static final String DELETE_USER_SQL = "DELETE FROM USERS WHERE id = ?";
     // private static final String SET_ACTIVE_SQL = "UPDATE USERS SET is_active = ?, updated_at = NOW() WHERE user_id = ?"; // For soft delete
 
@@ -108,6 +112,36 @@ public class UserDAOImpl implements UserDAO {
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error adding user: " + user.getUsername(), e);
+        } finally {
+            // Ensure ResultSet is closed
+            if (generatedKeys != null) {
+                try {
+                    generatedKeys.close();
+                } catch (SQLException e) {
+                    /* ignore */ }
+            }
+        }
+        return -1; // Indicate failure
+    }
+
+    @Override
+    public int addUserByAdmin(User user) {
+        ResultSet generatedKeys = null;
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(ADMIN_ADD_USER_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, user.getEmail());
+            pstmt.setString(2, user.getPasswordHash());
+            pstmt.setString(3, user.getRole().name());
+
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                generatedKeys = pstmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1); // Return the generated ID
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error adding user by admin: " + user.getUsername(), e);
         } finally {
             // Ensure ResultSet is closed
             if (generatedKeys != null) {

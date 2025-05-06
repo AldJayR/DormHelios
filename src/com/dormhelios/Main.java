@@ -10,6 +10,7 @@ import com.dormhelios.view.LoginView;
 import com.dormhelios.view.MainDashboardView;
 import com.dormhelios.view.RegisterView;
 import com.dormhelios.view.TenantDashboardView;
+import com.dormhelios.view.AdminDashboardView;
 import com.formdev.flatlaf.FlatLightLaf; // Import FlatLaf
 
 import javax.swing.SwingUtilities;
@@ -248,9 +249,9 @@ public class Main {
                         break;
                         
                     case ADMIN:
-                        // For now, admin uses the main dashboard until admin dashboard is implemented
-                        LOGGER.log(Level.WARNING, "DEBUG - Routing to ADMIN dashboard (temp: MainDashboardView)");
-                        showMainDashboard();
+                        // Admin user - route to Admin Dashboard
+                        LOGGER.log(Level.WARNING, "DEBUG - Routing to ADMIN dashboard (AdminDashboardView)");
+                        showAdminDashboard();
                         break;
                         
                     default:
@@ -367,5 +368,28 @@ public class Main {
         
         // Show the tenant dashboard view
         tenantDashboardView.setVisible(true);
+    }
+    
+    /**
+     * Creates and displays the Admin Dashboard Screen.
+     */
+    public static void showAdminDashboard() {
+        if (currentLoggedInUser == null) {
+            LOGGER.log(Level.SEVERE, "Attempted to show admin dashboard without a logged-in user!");
+            showLoginScreen();
+            return;
+        }
+        // Initialize and show Admin Dashboard View
+        AdminDashboardView adminView = new AdminDashboardView();
+        adminView.setUserDisplayName(
+            currentLoggedInUser.getFirstName() != null ? currentLoggedInUser.getFirstName() : currentLoggedInUser.getUsername()
+        );
+        // Logout action
+        adminView.setLogoutActionListener(e -> {
+            currentLoggedInUser = null;
+            adminView.closeView();
+            showLoginScreen();
+        });
+        adminView.setVisible(true);
     }
 }
