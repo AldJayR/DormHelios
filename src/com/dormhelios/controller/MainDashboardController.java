@@ -6,12 +6,17 @@ import com.dormhelios.model.dao.EmergencyContactDAO;
 import com.dormhelios.model.entity.User;
 import com.dormhelios.model.entity.Payment;
 import com.dormhelios.model.entity.Room;
+import com.dormhelios.util.DatabaseConnection;
 import com.dormhelios.view.*; // Import relevant Views/Panels
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal; // For potential revenue calculation
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.NumberFormat; // For currency formatting
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -103,6 +108,9 @@ public class MainDashboardController {
         // Load dashboard data asynchronously
         loadDashboardData();
 
+        // Load payment status chart
+        loadPaymentStatusChart();
+
         // Make the main window visible
         SwingUtilities.invokeLater(() -> mainView.setVisible(true));
     }
@@ -184,6 +192,7 @@ public class MainDashboardController {
         
         mainView.displayPanel(MainDashboardView.DASHBOARD_PANEL, mainView.getDashboardButton());
         loadDashboardData(); // Refresh data when navigating back
+        loadPaymentStatusChart(); // Refresh chart when navigating back
     }
 
     private void showTenantListPanel() {
@@ -428,6 +437,96 @@ public class MainDashboardController {
         worker.execute(); // Start the SwingWorker
     }
 
+    /**
+     * Loads and displays the payment data chart on the dashboard.
+     * Shows payments for the last 6 months with paid vs unpaid counts.
+     */
+    private void loadPaymentStatusChart() {
+        SwingWorker<PaymentChartData, Void> worker = new SwingWorker<>() {
+            @Override
+            protected PaymentChartData doInBackground() throws Exception {
+                // Get current date and calculate the range for the last 6 months
+                LocalDate endDate = LocalDate.now();
+                LocalDate startDate = endDate.minusMonths(5).withDayOfMonth(1); // 6 months including current
+                
+                // Prepare arrays to hold the data
+                String[] monthLabels = new String[6];
+                int[] paidCounts = new int[6];
+                int[] unpaidCounts = new int[6]; // For future expansion if tracking unpaid/due payments
+                
+                // Initialize with zero values
+                for (int i = 0; i < 6; i++) {
+                    LocalDate monthDate = startDate.plusMonths(i);
+                    monthLabels[i] = monthDate.format(DateTimeFormatter.ofPattern("MMM yyyy"));
+                    paidCounts[i] = 0;
+                    unpaidCounts[i] = 0;
+                }
+                
+                // Query payments from the database for the period
+                try (Connection conn = DatabaseConnection.getConnection();
+                     PreparedStatement stmt = conn.prepareStatement(
+                         "SELECT EXTRACT(YEAR FROM payment_date) as year, " +
+                         "EXTRACT(MONTH FROM payment_date) as month, " +
+                         "COUNT(*) as payment_count " +
+                         "FROM payments " +
+                         "WHERE payment_date BETWEEN ? AND ? " +
+                         "GROUP BY EXTRACT(YEAR FROM payment_date), EXTRACT(MONTH FROM payment_date) " +
+                         "ORDER BY year, month")) {
+                    
+                    // Set date parameters
+                    stmt.setDate(1, java.sql.Date.valueOf(startDate));
+                    stmt.setDate(2, java.sql.Date.valueOf(endDate));
+                    
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        while (rs.next()) {
+                            int year = rs.getInt("year");
+                            int month = rs.getInt("month");
+                            int count = rs.getInt("payment_count");
+                            
+                            // Find the matching month in our arrays
+                            for (int i = 0; i < 6; i++) {
+                                LocalDate arrayDate = startDate.plusMonths(i);
+                                if (arrayDate.getYear() == year && arrayDate.getMonthValue() == month) {
+                                    paidCounts[i] = count;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // For unpaid counts (placeholder - in a real system this would query for due payments)
+                    // This is just sample data for visualization
+                    for (int i = 0; i < 6; i++) {
+                        // Generate sample unpaid data - in a real implementation, this would be from DB
+                        unpaidCounts[i] = (int)(Math.random() * 5); // Random value 0-4 for demo
+                    }
+                    
+                    return new PaymentChartData(monthLabels, paidCounts, unpaidCounts);
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error loading payment chart data", e);
+                    return new PaymentChartData(
+                            new String[]{"Error", "Loading", "Data", "Please", "Try", "Again"},
+                            new int[6], new int[6]);
+                }
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    PaymentChartData data = get();
+                    dashboardPanel.displayPaymentBarChart(
+                            data.monthLabels, 
+                            data.paidCounts, 
+                            data.unpaidCounts);
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE, "Error displaying payment chart", e);
+                }
+            }
+        };
+        
+        worker.execute();
+    }
+
     // --- Logout ---
 
     private void logout() {
@@ -468,6 +567,18 @@ public class MainDashboardController {
             this.reminders = reminders;
             this.activities = activities;
             this.newTenantsThisMonth = newTenantsThisMonth;
+        }
+    }
+
+    private static class PaymentChartData {
+        final String[] monthLabels;
+        final int[] paidCounts;
+        final int[] unpaidCounts;
+
+        PaymentChartData(String[] monthLabels, int[] paidCounts, int[] unpaidCounts) {
+            this.monthLabels = monthLabels;
+            this.paidCounts = paidCounts;
+            this.unpaidCounts = unpaidCounts;
         }
     }
 

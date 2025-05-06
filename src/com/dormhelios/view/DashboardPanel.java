@@ -11,6 +11,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import java.awt.Cursor;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.BorderLayout;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.chart.axis.CategoryAxis;
 
 public class DashboardPanel extends javax.swing.JPanel {
 
@@ -50,7 +60,7 @@ public class DashboardPanel extends javax.swing.JPanel {
         revenueIconLabel = new javax.swing.JLabel();
         paymentStatusPanel = new javax.swing.JPanel();
         paymentStatusTitleLabel = new javax.swing.JLabel();
-        chartPlaceholderPanel = new javax.swing.JPanel();
+        chartContainerPanel = new javax.swing.JPanel();
         recentActivitiesPanel = new javax.swing.JPanel();
         recentActivitiesTitleLabel = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -99,7 +109,7 @@ public class DashboardPanel extends javax.swing.JPanel {
         jLabel2.setText("Total Tenants");
 
         totalTenantsLabel.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        totalTenantsLabel.setText("6");
+        totalTenantsLabel.setText("...");
 
         tenantChangeLabel.setText("+5 this month");
 
@@ -148,7 +158,7 @@ public class DashboardPanel extends javax.swing.JPanel {
         occupancyIconLabel.setText("placeholder");
 
         occupancyRateLabel.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        occupancyRateLabel.setText("67%");
+        occupancyRateLabel.setText("...");
 
         javax.swing.GroupLayout occupancyCardLayout = new javax.swing.GroupLayout(occupancyCard);
         occupancyCard.setLayout(occupancyCardLayout);
@@ -186,7 +196,7 @@ public class DashboardPanel extends javax.swing.JPanel {
         revenueTitleLabel.setText("Monthly Revenue");
 
         monthlyRevenueLabel.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        monthlyRevenueLabel.setText("P5,000");
+        monthlyRevenueLabel.setText("...");
 
         revenueIconLabel.setText("placeholder");
 
@@ -219,16 +229,16 @@ public class DashboardPanel extends javax.swing.JPanel {
         paymentStatusTitleLabel.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         paymentStatusTitleLabel.setText("Payment Status");
 
-        chartPlaceholderPanel.setBackground(new java.awt.Color(255, 255, 153));
+        chartContainerPanel.setBackground(new java.awt.Color(255, 255, 153));
 
-        javax.swing.GroupLayout chartPlaceholderPanelLayout = new javax.swing.GroupLayout(chartPlaceholderPanel);
-        chartPlaceholderPanel.setLayout(chartPlaceholderPanelLayout);
-        chartPlaceholderPanelLayout.setHorizontalGroup(
-            chartPlaceholderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout chartContainerPanelLayout = new javax.swing.GroupLayout(chartContainerPanel);
+        chartContainerPanel.setLayout(chartContainerPanelLayout);
+        chartContainerPanelLayout.setHorizontalGroup(
+            chartContainerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 605, Short.MAX_VALUE)
         );
-        chartPlaceholderPanelLayout.setVerticalGroup(
-            chartPlaceholderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        chartContainerPanelLayout.setVerticalGroup(
+            chartContainerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 238, Short.MAX_VALUE)
         );
 
@@ -243,7 +253,7 @@ public class DashboardPanel extends javax.swing.JPanel {
                         .addComponent(paymentStatusTitleLabel))
                     .addGroup(paymentStatusPanelLayout.createSequentialGroup()
                         .addGap(45, 45, 45)
-                        .addComponent(chartPlaceholderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(chartContainerPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         paymentStatusPanelLayout.setVerticalGroup(
@@ -252,7 +262,7 @@ public class DashboardPanel extends javax.swing.JPanel {
                 .addGap(16, 16, 16)
                 .addComponent(paymentStatusTitleLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(chartPlaceholderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(chartContainerPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(23, Short.MAX_VALUE))
         );
 
@@ -388,7 +398,7 @@ public class DashboardPanel extends javax.swing.JPanel {
                                 .addComponent(revenueCard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(recentActivitiesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(41, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -427,7 +437,7 @@ public void setTotalTenants(int count, String changeText) {
 
     // Method to update the chart (Placeholder - requires a charting library)
     public JPanel getChartPanel() {
-        return chartPlaceholderPanel;
+        return chartContainerPanel;
         // The controller would get this panel and add the actual chart component
         // from a library like JFreeChart or Apache Commons Chart.
     }
@@ -467,6 +477,75 @@ public void setTotalTenants(int count, String changeText) {
     public void addAddRoomButtonListener(ActionListener listener) {
         // Assuming button is named addRoomButton
         addRoomButton.addActionListener(listener);
+    }
+
+    /**
+     * Creates and displays a payment status bar chart using JFreeChart
+     * 
+     * @param months The month labels for the x-axis
+     * @param paidCounts The number of paid payments for each month
+     * @param unpaidCounts The number of unpaid/outstanding payments for each month
+     */
+    public void displayPaymentBarChart(String[] months, int[] paidCounts, int[] unpaidCounts) {
+        // Clear existing components in the chart panel
+        chartContainerPanel.removeAll();
+        
+        // Create dataset for the chart
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        
+        // Populate the dataset with payment data
+        for (int i = 0; i < months.length; i++) {
+            dataset.addValue(paidCounts[i], "Paid", months[i]);
+            dataset.addValue(unpaidCounts[i], "Unpaid", months[i]);
+        }
+        
+        // Create the chart
+        JFreeChart barChart = ChartFactory.createBarChart(
+                "",                     // chart title
+                "Month",                // domain axis label
+                "Number of Payments",   // range axis label
+                dataset,                // data
+                PlotOrientation.VERTICAL, // orientation
+                true,                   // include legend
+                true,                   // tooltips
+                false                   // URLs
+        );
+        
+        // Customize the chart
+        barChart.setBackgroundPaint(Color.WHITE);
+        
+        // Get and customize the plot
+        CategoryPlot plot = (CategoryPlot) barChart.getPlot();
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setDomainGridlinePaint(new Color(220, 220, 220));
+        plot.setRangeGridlinePaint(new Color(220, 220, 220));
+        
+        // Set color for bars
+        BarRenderer renderer = (BarRenderer) plot.getRenderer();
+        renderer.setSeriesPaint(0, new Color(16, 185, 129));  // emerald-500 for Paid
+        renderer.setSeriesPaint(1, new Color(239, 68, 68));   // red-500 for Unpaid
+        renderer.setDrawBarOutline(false);
+        renderer.setShadowVisible(false);
+        renderer.setItemMargin(0.1);
+        
+        // Customize domain axis (X-axis)
+        CategoryAxis domainAxis = plot.getDomainAxis();
+        domainAxis.setCategoryMargin(0.2);
+        domainAxis.setLowerMargin(0.05);
+        domainAxis.setUpperMargin(0.05);
+        
+        // Create ChartPanel with the chart
+        ChartPanel chartPanel = new ChartPanel(barChart);
+        chartPanel.setPreferredSize(new Dimension(chartContainerPanel.getWidth(), chartContainerPanel.getHeight()));
+        chartPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Add chart panel to the container panel using BorderLayout
+        chartContainerPanel.setLayout(new BorderLayout());
+        chartContainerPanel.add(chartPanel, BorderLayout.CENTER);
+        
+        // Repaint to show the new chart
+        chartContainerPanel.revalidate();
+        chartContainerPanel.repaint();
     }
 
     /**
@@ -525,8 +604,8 @@ public void setTotalTenants(int count, String changeText) {
         stylePanel(jPanel2, slate100, "Quick Actions");
         
         // Style the chart placeholder
-        chartPlaceholderPanel.setBackground(Color.WHITE);
-        chartPlaceholderPanel.setBorder(BorderFactory.createLineBorder(slate100, 1, true));
+        chartContainerPanel.setBackground(Color.WHITE);
+        chartContainerPanel.setBorder(BorderFactory.createLineBorder(slate100, 1, true));
         
         // Style the list components
         remindersList.setBackground(Color.WHITE);
@@ -693,7 +772,7 @@ public void setTotalTenants(int count, String changeText) {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addRoomButton;
     private javax.swing.JButton addTenantButton;
-    private javax.swing.JPanel chartPlaceholderPanel;
+    private javax.swing.JPanel chartContainerPanel;
     private javax.swing.JFormattedTextField jFormattedTextField1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

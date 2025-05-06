@@ -1,7 +1,11 @@
 package com.dormhelios.view;
 
+import java.awt.Color;
 import javax.swing.JOptionPane;
 import java.awt.event.ActionListener;
+import javax.swing.ImageIcon;
+import java.awt.Image;
+import javax.swing.BorderFactory;
 
 public class LoginView extends javax.swing.JFrame {
 
@@ -12,6 +16,11 @@ public class LoginView extends javax.swing.JFrame {
         initComponents();
         setLocationRelativeTo(null);
         setTitle("DormHelios - Login");
+        
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/resources/dormhelios-logo.png"));
+        Image scaledImage = originalIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+        iconLabel.setIcon(new ImageIcon(scaledImage));
+        
     }
 
     /**
@@ -33,11 +42,14 @@ public class LoginView extends javax.swing.JFrame {
         registerLinkButton = new javax.swing.JButton();
         rememberMeCheckbox = new javax.swing.JCheckBox();
         loginTextLabel1 = new javax.swing.JLabel();
+        iconLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(884, 568));
         setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, Color.GRAY));
 
         loginTextLabel.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         loginTextLabel.setText("DormHelios");
@@ -130,17 +142,26 @@ public class LoginView extends javax.swing.JFrame {
                 .addContainerGap(156, Short.MAX_VALUE))
         );
 
+        iconLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        iconLabel.setText("h");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 452, Short.MAX_VALUE)
+                .addGap(50, 50, 50)
+                .addComponent(iconLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 402, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(iconLabel)
+                .addGap(104, 104, 104))
         );
 
         pack();
@@ -287,6 +308,7 @@ public class LoginView extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField emailField;
+    private javax.swing.JLabel iconLabel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;

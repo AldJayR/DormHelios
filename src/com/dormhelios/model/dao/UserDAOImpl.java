@@ -162,21 +162,28 @@ public class UserDAOImpl implements UserDAO {
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getInt("id"));
-       user.setUsername(rs.getString("username"));
+        user.setUsername(rs.getString("username"));
         user.setPasswordHash(rs.getString("password_hash")); // Important: Never expose this unnecessarily
         user.setFirstName(rs.getString("first_name"));
         user.setSurname(rs.getString("surname"));
 
-       /*
+        // Properly read the role from the database
         try {
-            user.setRole(User.Role.valueOf(rs.getString("role").toUpperCase()));
-        } catch (IllegalArgumentException | NullPointerException e) {
-            LOGGER.log(Level.WARNING, "Invalid role found in database for user ID: " + user.getUserId(), e);
-            // Handle appropriately - perhaps set a default role or log error prominently
-            
+            String roleStr = rs.getString("role");
+            if (roleStr != null && !roleStr.isEmpty()) {
+                user.setRole(User.Role.valueOf(roleStr.toUpperCase()));
+            } else {
+                // Set a default role if the field is empty
+                LOGGER.log(Level.WARNING, "Empty role found in database for user ID: " + user.getUserId());
+                user.setRole(User.Role.TENANT); // Default role as fallback
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.log(Level.WARNING, "Invalid role found in database for user ID: " + user.getUserId() + 
+                    ". Role string: " + rs.getString("role"), e);
+            // Set a default role as fallback
+            user.setRole(User.Role.TENANT);
         }
-*/
-        user.setRole(User.Role.TENANT); // Example fallback
+        
         user.setEmail(rs.getString("email"));
         user.setPhoneNumber(rs.getString("phone_number"));
         user.setActive(rs.getBoolean("is_active"));

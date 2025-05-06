@@ -55,7 +55,7 @@
                       </Group>
                   </Group>
               </Group>
-              <EmptySpace pref="41" max="32767" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -194,7 +194,7 @@
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Segoe UI" size="36" style="1"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="6"/>
+            <Property name="text" type="java.lang.String" value="..."/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="tenantChangeLabel">
@@ -280,7 +280,7 @@
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Segoe UI" size="36" style="1"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="67%"/>
+            <Property name="text" type="java.lang.String" value="..."/>
           </Properties>
         </Component>
       </SubComponents>
@@ -333,7 +333,7 @@
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Segoe UI" size="36" style="1"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="P5,000"/>
+            <Property name="text" type="java.lang.String" value="..."/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="revenueIconLabel">
@@ -356,7 +356,7 @@
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
-                          <Component id="chartPlaceholderPanel" min="-2" max="-2" attributes="0"/>
+                          <Component id="chartContainerPanel" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
@@ -369,7 +369,7 @@
                   <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
                   <Component id="paymentStatusTitleLabel" min="-2" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                  <Component id="chartPlaceholderPanel" min="-2" max="-2" attributes="0"/>
+                  <Component id="chartContainerPanel" min="-2" max="-2" attributes="0"/>
                   <EmptySpace pref="23" max="32767" attributes="0"/>
               </Group>
           </Group>
@@ -384,7 +384,7 @@
             <Property name="text" type="java.lang.String" value="Payment Status"/>
           </Properties>
         </Component>
-        <Container class="javax.swing.JPanel" name="chartPlaceholderPanel">
+        <Container class="javax.swing.JPanel" name="chartContainerPanel">
           <Properties>
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="99" green="ff" red="ff" type="rgb"/>

@@ -1,7 +1,11 @@
 package com.dormhelios.view;
 
+import java.awt.Image;
 import javax.swing.JOptionPane;
 import java.awt.event.ActionListener;
+import javax.swing.ImageIcon;
+import javax.swing.BorderFactory;
+import java.awt.Color;
 
 public class RegisterView extends javax.swing.JFrame {
 
@@ -11,7 +15,11 @@ public class RegisterView extends javax.swing.JFrame {
     public RegisterView() {
         initComponents();
         setLocationRelativeTo(null);
-        setTitle("DormHelios - Login");
+        setTitle("DormHelios - Register");
+        
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/resources/dormhelios-logo.png"));
+        Image scaledImage = originalIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+        iconLabel.setIcon(new ImageIcon(scaledImage));
     }
 
     /**
@@ -34,11 +42,13 @@ public class RegisterView extends javax.swing.JFrame {
         confirmPasswordField = new javax.swing.JPasswordField();
         emailField = new javax.swing.JTextField();
         loginTextLabel1 = new javax.swing.JLabel();
+        iconLabel = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, Color.GRAY));
         jPanel1.setPreferredSize(new java.awt.Dimension(432, 568));
 
         loginTextLabel.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
@@ -135,17 +145,25 @@ public class RegisterView extends javax.swing.JFrame {
                 .addContainerGap(145, Short.MAX_VALUE))
         );
 
+        iconLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 452, Short.MAX_VALUE)
+                .addGap(50, 50, 50)
+                .addComponent(iconLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 402, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 587, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(iconLabel)
+                .addGap(142, 142, 142))
         );
 
         pack();
@@ -258,6 +276,7 @@ public class RegisterView extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPasswordField confirmPasswordField;
     private javax.swing.JTextField emailField;
+    private javax.swing.JLabel iconLabel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

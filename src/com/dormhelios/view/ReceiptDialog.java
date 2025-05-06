@@ -366,7 +366,9 @@ public class ReceiptDialog extends javax.swing.JDialog {
 
         qrCodeLabel.setText("qr  code goes here");
 
+        printButton.setBackground(new java.awt.Color(75, 85, 99));
         printButton.setFont(new java.awt.Font("Segoe UI Semibold", 0, 12)); // NOI18N
+        printButton.setForeground(new java.awt.Color(255, 255, 255));
         printButton.setText("Print");
         printButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -374,10 +376,14 @@ public class ReceiptDialog extends javax.swing.JDialog {
             }
         });
 
+        downloadButton.setBackground(new java.awt.Color(37, 99, 235));
         downloadButton.setFont(new java.awt.Font("Segoe UI Semibold", 0, 12)); // NOI18N
+        downloadButton.setForeground(new java.awt.Color(255, 255, 255));
         downloadButton.setText("Download");
 
+        doneButton.setBackground(new java.awt.Color(22, 163, 74));
         doneButton.setFont(new java.awt.Font("Segoe UI Semibold", 0, 12)); // NOI18N
+        doneButton.setForeground(new java.awt.Color(255, 255, 255));
         doneButton.setText("Done");
         doneButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

@@ -3,11 +3,13 @@ package com.dormhelios;
 import com.dormhelios.controller.LoginController;
 import com.dormhelios.controller.MainDashboardController;
 import com.dormhelios.controller.RegisterController;
+import com.dormhelios.controller.TenantDashboardController;
 import com.dormhelios.model.dao.*; // Import all DAO interfaces & impls
 import com.dormhelios.model.entity.User; // Needed for passing user
 import com.dormhelios.view.LoginView;
 import com.dormhelios.view.MainDashboardView;
 import com.dormhelios.view.RegisterView;
+import com.dormhelios.view.TenantDashboardView;
 import com.formdev.flatlaf.FlatLightLaf; // Import FlatLaf
 
 import javax.swing.SwingUtilities;
@@ -218,7 +220,45 @@ public class Main {
             Optional<User> userOpt = userDAO.findByEmail(loginView.getEmailInput()); // Assuming email is username here
             if (userOpt.isPresent()) {
                 currentLoggedInUser = userOpt.get();
-                showMainDashboard();
+                
+                // Add detailed debugging about the user role
+                LOGGER.log(Level.WARNING, "DEBUG - User login successful");
+                LOGGER.log(Level.WARNING, "DEBUG - User email: " + currentLoggedInUser.getEmail());
+                LOGGER.log(Level.WARNING, "DEBUG - User role: " + currentLoggedInUser.getRole());
+                LOGGER.log(Level.WARNING, "DEBUG - User role class: " + currentLoggedInUser.getRole().getClass().getName());
+                LOGGER.log(Level.WARNING, "DEBUG - Role equality test - Is LANDLORD? " + 
+                        (currentLoggedInUser.getRole() == User.Role.LANDLORD));
+                LOGGER.log(Level.WARNING, "DEBUG - Role equality test - Is TENANT? " + 
+                        (currentLoggedInUser.getRole() == User.Role.TENANT));
+                LOGGER.log(Level.WARNING, "DEBUG - Role equality test - Is ADMIN? " + 
+                        (currentLoggedInUser.getRole() == User.Role.ADMIN));
+                
+                // Determine which dashboard to show based on user role
+                switch (currentLoggedInUser.getRole()) {
+                    case TENANT:
+                        // If user is a tenant, show tenant dashboard
+                        LOGGER.log(Level.WARNING, "DEBUG - Routing to TENANT dashboard");
+                        showTenantDashboard();
+                        break;
+                        
+                    case LANDLORD:
+                        // If user is a landlord, show the main dashboard
+                        LOGGER.log(Level.WARNING, "DEBUG - Routing to LANDLORD dashboard (MainDashboardView)");
+                        showMainDashboard();
+                        break;
+                        
+                    case ADMIN:
+                        // For now, admin uses the main dashboard until admin dashboard is implemented
+                        LOGGER.log(Level.WARNING, "DEBUG - Routing to ADMIN dashboard (temp: MainDashboardView)");
+                        showMainDashboard();
+                        break;
+                        
+                    default:
+                        // Handle unexpected role (shouldn't happen but being defensive)
+                        LOGGER.log(Level.WARNING, "DEBUG - Unknown role: " + currentLoggedInUser.getRole());
+                        loginView.displayErrorMessage("Unknown user role. Please contact administrator.");
+                        break;
+                }
             } else {
                 // Should not happen if login logic was correct, but handle defensively
                 LOGGER.log(Level.SEVERE, "User data lost after successful login check!");
@@ -287,5 +327,45 @@ public class Main {
         });
 
         mainDashboardController.initializeDashboard(); // Setup and show the dashboard
+    }
+
+    /**
+     * Creates and displays the Tenant Dashboard Screen.
+     */
+    public static void showTenantDashboard() {
+        if (currentLoggedInUser == null) {
+            LOGGER.log(Level.SEVERE, "Attempted to show tenant dashboard without a logged-in user!");
+            showLoginScreen(); // Go back to login if no user
+            return;
+        }
+
+        LOGGER.log(Level.INFO, "Showing tenant dashboard for user: " + currentLoggedInUser.getEmail());
+        
+        // Create the tenant dashboard view
+        TenantDashboardView tenantDashboardView = new TenantDashboardView();
+        
+        // Create and initialize the tenant dashboard controller with all necessary dependencies
+        TenantDashboardController tenantDashboardController = new TenantDashboardController(
+                tenantDashboardView,
+                tenantDAO,
+                paymentDAO,
+                roomDAO,
+                userDAO,
+                currentLoggedInUser
+        );
+        
+        // Set user display name in sidebar
+        tenantDashboardView.setUserDisplayName(currentLoggedInUser.getFirstName() != null ? 
+                currentLoggedInUser.getFirstName() : currentLoggedInUser.getUsername());
+        
+        // Set logout action
+        tenantDashboardView.setLogoutActionListener(e -> {
+            currentLoggedInUser = null; // Clear logged-in user state
+            tenantDashboardView.closeView(); // Close dashboard
+            showLoginScreen(); // Show login screen again
+        });
+        
+        // Show the tenant dashboard view
+        tenantDashboardView.setVisible(true);
     }
 }
